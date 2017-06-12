@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.ui.externaltools.ProgramLaunchConfigurationType">
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.ui.externaltools.launchGroup"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/robodriver/start_seleniumserver.cmd}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="&quot;C:/ProgramData/Oracle/Java/javapath/java.exe&quot;&#13;&#10;&quot;C:/drive_D/ST_workspace/deploy/Mobile/Common/SeleniumStandaloneServer/selenium-server-standalone-3.4.0.jar&quot;&#13;&#10;&quot;C:\drive_D\ST_workspace\deploy\WebDrivers\Windows\Gecko\0.16.1\geckodriver.exe&quot;"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/robodriver/target}"/>
+</launchConfiguration>
