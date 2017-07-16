@@ -1,4 +1,4 @@
-package io.test.automation.robodriver.internal.webdriver;
+package io.test.automation.robodriver;
 
 import java.awt.*;
 import java.io.IOException;
@@ -6,24 +6,32 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.CommandExecutor;
 import org.openqa.selenium.remote.DriverCommand;
 import org.openqa.selenium.remote.Response;
 
+import io.test.automation.robodriver.internal.LoggerUtil;
 import io.test.automation.robodriver.internal.RoboScreen;
 import io.test.automation.robodriver.internal.RoboUtil;
 
 public class RoboDriverCommandExecutor implements CommandExecutor {
 	
-	Pattern xpathWithIndex = Pattern.compile("/*screen\\[(\\d+)\\]");
+	private static Logger LOGGER = LoggerUtil.get(RoboDriverCommandExecutor.class);
+	
+	private Pattern xpathWithIndex = Pattern.compile("/*screen\\[(\\d+)\\]");
 			
 	@Override
 	public Response execute(Command command) throws IOException {
+		LOGGER.log(Level.FINE, "command: {0}", command.toString());
 		Response response = new Response();
 		if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
 			GraphicsDevice device = RoboUtil.getDefaultDevice(); // TODO use active screen
@@ -66,36 +74,77 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		} else if (DriverCommand.FIND_ELEMENT.equals(command.getName())) {
 			Map<String, ?> parameters = command.getParameters();
 			String value = parameters.get("value").toString().toLowerCase();
-			if (value.contains("screen")) {
-				if (value.contains("default")) {
-					RoboScreen screen = RoboScreen.getDefaultScreen();
-					response.setValue(screen);
-				} else if (value.endsWith("screen")) {
-					RoboScreen screen = RoboScreen.getScreen(0);
-					response.setValue(screen);
-				} else {
-					Matcher matcher = xpathWithIndex.matcher(value);
-					if (matcher.find()) {
-						try {
-							RoboScreen screen = RoboScreen.getScreen(Integer.parseInt(matcher.group(1)));
-							response.setValue(screen);
-						} catch (Exception e) {
-							// ignore
-						}
+			if (! value.contains("screen")) {
+				throw new WebDriverException("connot find '" + value + "'");
+			}
+			if (value.contains("default")) {
+				RoboScreen screen = RoboScreen.getDefaultScreen();
+				response.setValue(screen);
+			} else if (value.endsWith("screen")) {
+				RoboScreen screen = RoboScreen.getScreen(0);
+				response.setValue(screen);
+			} else {
+				Matcher matcher = xpathWithIndex.matcher(value);
+				if (matcher.find()) {
+					String index = matcher.group(1);
+					try {
+						RoboScreen screen = RoboScreen.getScreen(Integer.parseInt(index));
+						response.setValue(screen);
+					} catch (Exception e) {
+						throw new IOException("Cannot find screen with index = '" + index + "'");
 					}
 				}
 			}
-			else {
-				throw new WebDriverException("connot find '" + value + "'");
-			}
-        } else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
+		} else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
 			response.setValue(new HashMap<>());
 			response.setSessionId(Long.toString(System.currentTimeMillis()));
 		} else if (DriverCommand.ACTIONS.equals(command.getName())) {
-			System.out.println(command);
-			command.getParameters().get("actions");
+			handleActionsW3C_Selenium_3_4(command);
 		}
 		return response;
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean handleActionsW3C_Selenium_3_4(Command command) {
+		Set<?> actions = (Set<?>) command.getParameters().get("actions");
+		for (Object action : actions) {
+			if (action instanceof Sequence) {
+				Sequence seq = (Sequence) action;
+				Map<String, Object> encode = seq.encode();
+				LOGGER.log(Level.FINE, "ACTION raw data: {0}", encode);
+				List<Object> actionList = (List<Object>) encode.get("actions");
+				for (Object actionObject : actionList) {
+					Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
+					final GraphicsDevice device;
+					final Object targetObject = actionDetails.get("origin");
+					if (targetObject == null) {
+						LOGGER.log(Level.FINE, "No screen device defined, using default screen.");
+						device = RoboUtil.getDefaultDevice();
+					} else if (! (targetObject instanceof RoboScreen)) {
+						throw new RuntimeException(String.format("Invalid target element type '%s', '%s' is needed.", targetObject.toString(), RoboScreen.class.getName()));
+					} else {
+						device = ((RoboScreen)targetObject).getDevice();
+					}
+					String actionType = (String) actionDetails.get("type");
+					switch (actionType) {
+					case "pointerMove": 
+						Long tickDuration = (Long) actionDetails.get("duration");
+						Integer movePosX = (Integer) actionDetails.get("x");
+						Integer movePosY = (Integer) actionDetails.get("y");
+						RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
+						break;
+					case "pointerDown":
+						RoboUtil.mouseDown(device);
+						break;
+					case "pointerUp":
+						RoboUtil.mouseUp(device);
+						break;
+					}
+				}
+			}
+		}
+		LOGGER.log(Level.SEVERE, "unknown actions: {0}", actions);
+		return false;
 	}
 
 	private GraphicsDevice getDevice(Map<String, ?> parameters) {

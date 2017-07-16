@@ -4,6 +4,8 @@ import java.awt.GraphicsDevice;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.internal.Coordinates;
@@ -11,6 +13,8 @@ import org.openqa.selenium.internal.HasIdentity;
 import org.openqa.selenium.internal.Locatable;
 
 public class RoboScreen implements WebElement, Locatable, HasIdentity {
+
+	private static Logger LOGGER = LoggerUtil.get(RoboScreen.class);
 
 	private GraphicsDevice device;
 	private java.awt.Rectangle bounds;
@@ -45,6 +49,7 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 
 	@Override
 	public void sendKeys(CharSequence... keysToSend) {
+		LOGGER.log(Level.FINE, ()->String.format("send keys '%s', device=%s", charSequenceToString(keysToSend), device)); 
 		Robot robot = RoboUtil.getRobot(device);
 		RoboUtil.sendKeys(robot, keysToSend);
 	}
@@ -172,6 +177,18 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	@Override
 	public String getId() {
 		return device.getIDstring();
+	}
+	
+	public GraphicsDevice getDevice() {
+		return device;
+	}
+
+	private String charSequenceToString(CharSequence[] charSequenceArray) {
+		StringBuilder sb = new StringBuilder();
+		for (CharSequence charSequence : charSequenceArray) {
+			sb.append(charSequence);
+		}
+		return sb.toString();
 	}
 
 }

@@ -5,8 +5,6 @@ import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import io.test.automation.robodriver.internal.webdriver.RoboDriverCommandExecutor;
-
 public class RoboDriver extends RemoteWebDriver {
 
 	public static final String BROWSER_NAME = "io.test.automation.robodriver";
@@ -53,11 +51,7 @@ public class RoboDriver extends RemoteWebDriver {
 			getAppProcess().destroyForcibly();
 		}
 	}
-
-	/**
-	 * 
-	 * @return
-	 */
+	
 	public Process getAppProcess() {
 		return appProcess;
 	}

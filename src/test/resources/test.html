@@ -8,14 +8,15 @@
 
     <h3>Click Area</h3>
     <div>
-    <canvas id="testarea" width="200" height="200"></canvas>
+    <canvas id="clickarea" width="200" height="200"></canvas>
     </div>
     <h3>Outputs</h3>
     <textarea id="outputs" rows="4" cols="50"></textarea>
-    <br>
-    <input id="clearbutton" type="button" value="Clear"/>
+    <p>
+    <input id="clearbutton" type="button" value="Clear All"/>
+    </p>
     <script>
-        var elem = document.getElementById('testarea');
+        var elem = document.getElementById('clickarea');
         var context = elem.getContext('2d');
         context.fillStyle = '#0000FF';
         context.fillRect(0, 0, 200, 200);
@@ -26,18 +27,33 @@
            if (upAndDown) {
              out.value = "click pos: " + event.offsetX + "," + event.offsetY;
            }
+           drawLine(event.offsetX - 5,  event.offsetY, event.offsetX + 5,  event.offsetY);
+           drawLine(event.offsetX,  event.offsetY - 5, event.offsetX,  event.offsetY + 5);
         };
         elem.onmousedown = function(event) { 
           mousedownX = event.offsetX; 
           mousedownY = event.offsetY; 
         };
         elem.onmouseup = function(event) { 
-           out.value = "mouse move: from (" + mousedownX + "," + mousedownY + ") to ("
-            + event.offsetX + "," + event.offsetY + ")";
+          out.value = "mouse move: from (" + mousedownX + "," + mousedownY + ") to ("
+              + event.offsetX + "," + event.offsetY + ")";
+          drawLine(mousedownX, mousedownY, event.offsetX,  event.offsetY);
         };
         
         var clear = document.getElementById('clearbutton');
-        clear.onclick = function() { out.value = ""; };
+        clear.onclick = function() { 
+          out.value = ""; 
+          context.fillRect(0, 0, 200, 200);
+        };
+        
+        function drawLine(x1, y1, x2, y2) {
+          context.beginPath();
+          context.moveTo(x1, y1);
+          context.lineTo(x2, y2);
+          context.lineWidth = 3;
+          context.strokeStyle = '#ff0000';
+          context.stroke();
+        }
     </script>
 
 </body>

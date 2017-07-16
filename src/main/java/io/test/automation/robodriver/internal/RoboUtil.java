@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -17,6 +19,8 @@ import javax.swing.JFrame;
 import org.openqa.selenium.Keys;
 
 public class RoboUtil {
+	
+	private static Logger LOGGER = LoggerUtil.get(RoboUtil.class);
 	
 	private static Map<String, Robot> robots = new HashMap<>();
 
@@ -129,19 +133,6 @@ public class RoboUtil {
 		return result;
 	}
 
-	public static void sendKeys(Robot robot, String keys, int delay) {
-		for (char c : keys.toCharArray()) {
-			int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
-			if (KeyEvent.CHAR_UNDEFINED == keyCode) {
-				throw new RuntimeException("KeyEvent not found for character '" + c + "'");
-			}
-			robot.keyPress(keyCode);
-			robot.delay(delay);
-			robot.keyRelease(keyCode);
-			robot.delay(delay);
-		}
-	}
-
 	public static void sendKeys(Robot robot, CharSequence[] keysToSend) {
 		for (CharSequence charSeq : keysToSend) {
 			for (int i = 0; i < charSeq.length(); i++) {
@@ -157,11 +148,6 @@ public class RoboUtil {
 		}
 	}
 
-	public static void sendKey(Robot robot, int key, int delay) {
-		robot.keyPress(key);
-		robot.keyRelease(key);
-	}
-	
 	public static Robot getRobot(GraphicsDevice device) {
 		if (robots.containsKey(device.getIDstring())) {
 			return robots.get(device.getIDstring());
@@ -177,23 +163,36 @@ public class RoboUtil {
 			}
 		}
 	}
+	
+	public static Robot getDefaultRobot() {
+		return getRobot(getDefaultDevice());
+	}
 
 	public static void mouseDown(GraphicsDevice device) {
+		LOGGER.log(Level.FINE, ()->String.format("mouse down, device=%s", device)); 
 		getRobot(device).mousePress(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
 	public static void mouseUp(GraphicsDevice device) {
+		LOGGER.log(Level.FINE, ()->String.format("mouse up, device=%s", device)); 
 		getRobot(device).mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	}
+
+	public static void mouseMove(GraphicsDevice device, Long tickDuration, Integer movePosX, Integer movePosY) {
+		LOGGER.log(Level.FINE, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
+				movePosX, movePosY, tickDuration, device));
+		// TODO implement move ticks
+		getRobot(device).mouseMove(movePosX, movePosY);
+	}
+
+	public static int getKey(Keys key) {
+		return webDriverKeyMap.get(key);
 	}
 
 	public static void main(String[] args) {
 		showScreenDevices();
 		clacVirtualBounds();
 		clacDefaultVirtualBounds();
-	}
-
-	public static int getKey(Keys key) {
-		return webDriverKeyMap.get(key);
 	}
 
 }
