@@ -70,7 +70,7 @@ public class RoboUtil {
 			GraphicsConfiguration[] gc = gd.getConfigurations();
 			for (int i=0; i < gc.length; i++) {
 				Rectangle bounds = gc[i].getBounds();
-				System.out.println("graphics device/config-" + j + "/" + i + ", bounds=" + bounds);
+				System.out.println("graphics device/config-index: " + j + "/" + i + ", bounds=" + bounds);
 				virtualBounds = virtualBounds.union(bounds);
 			}
 		} 
@@ -87,7 +87,7 @@ public class RoboUtil {
 			System.out.println("graphics config-" + i + ", bounds=" + bounds);
 			virtualBounds = virtualBounds.union(bounds);
 		}
-		System.out.println("defautl screen virtualBounds=" + virtualBounds);
+		System.out.println("default screen virtualBounds=" + virtualBounds);
 	}
 
 	public static void createScreenShot(Rectangle rectangle) {

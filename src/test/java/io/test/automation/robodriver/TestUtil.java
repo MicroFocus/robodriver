@@ -64,23 +64,6 @@ public class TestUtil {
 		return System.getProperty("os.name").toLowerCase().contains("win");
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(System.getProperty("os.name"));
-		
-		RemoteWebDriver driver = null;
-		try {
-			TestUtil util = new TestUtil();
-			driver = util.startChrome();
-			util.navigateToTestPage(driver);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (driver != null) {
-				driver.quit();
-			}
-		}
-	}
-
 	private static Pattern outputCoordinates = Pattern.compile("\\D*(\\d+),(\\d+)");
 
 	// TODO: implement the case when browser is not at the default screen
@@ -124,4 +107,22 @@ public class TestUtil {
 			e.printStackTrace();
 		}
 	}
+
+	public static void main(String[] args) {
+		System.out.println(System.getProperty("os.name"));
+		
+		RemoteWebDriver driver = null;
+		try {
+			TestUtil util = new TestUtil();
+			driver = util.startChrome();
+			util.navigateToTestPage(driver);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (driver != null) {
+				driver.quit();
+			}
+		}
+	}
+	
 }

@@ -58,7 +58,7 @@ public class RoboDriverActionsTest {
 		textInputField.click(); // set focus to input field
 		
 		// when
-		WebElement screen = robo.findElementByXPath("//screen");
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		screen.sendKeys("hello");
 		
 		// then
@@ -71,7 +71,7 @@ public class RoboDriverActionsTest {
 		WebElement clickInfo = BROWSER.findElementById("outputs");
 		
 		// when
-		WebElement screen = robo.findElementByXPath("//screen");
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		new Actions(robo)
 			.moveToElement(screen, CASP.getX() + 100, CASP.getY() + 100)
 			.click()
