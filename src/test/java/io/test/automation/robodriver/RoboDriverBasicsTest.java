@@ -8,6 +8,7 @@ import static org.junit.Assume.assumeTrue;
 import java.util.List;
 
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -88,6 +89,16 @@ public class RoboDriverBasicsTest {
 		} catch (Exception e) {
 			assertTrue(e.getCause().getMessage().contains("999991"));
 		}
+	}
+	
+	@Test
+	public void testFindRectangleOfScreen() {
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
+		WebElement screen = roboDriver.findElementByXPath("//screen[@default=true]");
+		
+		WebElement rectangle = screen.findElement(By.xpath("//rectangle[@dim='70,80,100,200']"));
+		assertNotNull(rectangle);
 	}
 	
 	private void assertScrenRectangle(WebElement screen) {

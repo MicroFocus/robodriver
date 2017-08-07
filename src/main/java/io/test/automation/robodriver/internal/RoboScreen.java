@@ -3,25 +3,30 @@ package io.test.automation.robodriver.internal;
 import java.awt.GraphicsDevice;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.internal.Coordinates;
-import org.openqa.selenium.internal.HasIdentity;
-import org.openqa.selenium.internal.Locatable;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.RemoteWebElement;
 
-public class RoboScreen implements WebElement, Locatable, HasIdentity {
+public class RoboScreen extends RemoteWebElement {
 
 	private static Logger LOGGER = LoggerUtil.get(RoboScreen.class);
 
+	private static Map<String, RoboScreen> roboScreenCache = new HashMap<>();
+	
 	private GraphicsDevice device;
 	private java.awt.Rectangle bounds;
 	private Rectangle rect;
 	private Dimension size;
+	
 
-	public RoboScreen(GraphicsDevice device) {
+	private RoboScreen(GraphicsDevice device) {
 		this.device = device;
 		this.bounds = device.getDefaultConfiguration().getBounds();
 		this.rect = new Rectangle(bounds.x, bounds.y, bounds.height, bounds.width);
@@ -29,22 +34,10 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	}
 
 	@Override
-	public <X> X getScreenshotAs(OutputType<X> target) throws WebDriverException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void click() {
 		Robot robot = RoboUtil.getRobot(device);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-	}
-
-	@Override
-	public void submit() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -57,7 +50,6 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	@Override
 	public void clear() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -96,12 +88,6 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	}
 
 	@Override
-	public WebElement findElement(By by) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public boolean isDisplayed() {
 		return true;
 	}
@@ -128,45 +114,24 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	}
 	
 	@Override
-	public String toString() {
-		return device + ", " + bounds;
-	}
-
-	public static RoboScreen getDefaultScreen() {
-		return new RoboScreen(RoboUtil.getDefaultDevice());
-	}
-
-	public static List<RoboScreen> getAllScreens() {
-		return RoboUtil.getAllScreens();
-	}
-
-	/**
-	 * @param index zero based
-	 * @return screen
-	 */
-	public static RoboScreen getScreen(int index) {
-		return new RoboScreen(RoboUtil.getDeviceByIndex(index));
-	}
-
-	@Override
 	public Coordinates getCoordinates() {
 		return new Coordinates() {
-
+	
 			@Override
 			public Point onScreen() {
 				throw new UnsupportedOperationException("Not supported yet.");
 			}
-
+	
 			@Override
 			public Point inViewPort() {
 				return getLocation();
 			}
-
+	
 			@Override
 			public Point onPage() {
 				return getLocation();
 			}
-
+	
 			@Override
 			public Object getAuxiliary() {
 				return device.getIDstring();
@@ -178,9 +143,47 @@ public class RoboScreen implements WebElement, Locatable, HasIdentity {
 	public String getId() {
 		return device.getIDstring();
 	}
-	
+
 	public GraphicsDevice getDevice() {
 		return device;
+	}
+
+	@Override
+	public String toString() {
+		return "id=" + id + " (" + device + ", " + bounds + ")";
+	}
+
+	public static RoboScreen getInstance(GraphicsDevice device, RemoteWebDriver driver) {
+		String id = device.getIDstring();
+		if (roboScreenCache.containsKey(id)) {
+			return roboScreenCache.get(id);
+		} else {
+			RoboScreen roboScreen = new RoboScreen(device);
+			roboScreen.setId(id);
+			roboScreen.setParent(driver);
+			roboScreenCache.put(id, roboScreen);
+			return roboScreen;
+		}
+	}
+	
+	public static RoboScreen getDefaultScreen(RemoteWebDriver driver) {
+		return getInstance(RoboUtil.getDefaultDevice(), driver);
+	}
+
+	public static List<RoboScreen> getAllScreens(RemoteWebDriver driver) {
+		return RoboUtil.getAllScreens(driver);
+	}
+
+	/**
+	 * @param index zero based
+	 * @return screen
+	 */
+	public static RoboScreen getScreen(int index, RemoteWebDriver driver) {
+		return getInstance(RoboUtil.getDeviceByIndex(index), driver);
+	}
+
+	public static RoboScreen getScreenById(String id) {
+		return roboScreenCache.get(id);
 	}
 
 	private String charSequenceToString(CharSequence[] charSequenceArray) {

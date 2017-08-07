@@ -14,6 +14,8 @@ public class RoboDriver extends RemoteWebDriver {
 	 */
 	public static String APP = "app";
 
+	private static RoboDriverCommandExecutor executor;
+
 	private Process appProcess;
 
 	public RoboDriver() {
@@ -21,7 +23,8 @@ public class RoboDriver extends RemoteWebDriver {
 	}
 
 	public RoboDriver(Capabilities capabilities) {
-		super(new RoboDriverCommandExecutor(), capabilities);
+		super(executor = new RoboDriverCommandExecutor(), capabilities);
+		executor.setDriver(this);
 	}
 
 	public static DesiredCapabilities getDesiredCapabilities() {

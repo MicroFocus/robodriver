@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
 public class RoboUtil {
 	
@@ -116,19 +117,19 @@ public class RoboUtil {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] screenDevices = ge.getScreenDevices();
 		for (GraphicsDevice device : screenDevices) {
-			if (deviceId.equals(device.getIDstring())) {
+			if (deviceId.toLowerCase().equals(device.getIDstring().toLowerCase())) {
 				return device;
 			}
 		}
 		return null;
 	}
 
-	public static List<RoboScreen> getAllScreens() {
+	public static List<RoboScreen> getAllScreens(RemoteWebDriver driver) {
 		List<RoboScreen> result = new ArrayList<>();
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] screenDevices = ge.getScreenDevices();
 		for (GraphicsDevice graphicsDevice : screenDevices) {
-			result.add(new RoboScreen(graphicsDevice));
+			result.add(RoboScreen.getInstance(graphicsDevice, driver));
 		}
 		return result;
 	}
