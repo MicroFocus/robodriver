@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.junit.*;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -15,7 +16,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 public class RoboDriverActionsTest {
 
-	private static Point CASP; // screen position of left upper corner of click area
+	private static Point CASP; // click area screen position of left upper corner
 	private static RemoteWebDriver BROWSER;
 	
 	private RoboDriver robo;
@@ -81,5 +82,39 @@ public class RoboDriverActionsTest {
 		String clickInfoText = clickInfo.getAttribute("value");
 		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
 		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
+	}
+	
+	@Test
+	public void testDragAndDrop() {
+		WebElement outputs = BROWSER.findElementById("outputs");
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		
+		// when
+		WebElement caspCorner = screen.findElement(
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 1, CASP.getY() + 1)));
+		WebElement caspCenter = screen.findElement(
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 100, CASP.getY() + 100)));
+		new Actions(robo)
+			.dragAndDrop(caspCorner, caspCenter)
+			.perform();
+		
+		// then
+		assertEquals("mouse move: from (1,1) to (100,100)", outputs.getAttribute("value"));
+	}
+	
+	@Test
+	public void testDragAndDropByOffset() {
+		WebElement outputs = BROWSER.findElementById("outputs");
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		
+		// when
+		WebElement caspCenter = screen.findElement(
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 100, CASP.getY() + 100)));
+		new Actions(robo)
+		.dragAndDropBy(caspCenter, 20, 20)
+		.perform();
+		
+		// then
+		assertEquals("mouse move: from (100,100) to (120,120)", outputs.getAttribute("value"));
 	}
 }

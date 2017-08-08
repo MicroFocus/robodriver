@@ -39,7 +39,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	// TODO use XPath API instead of simple parsing
 	@Override
 	public Response execute(Command command) throws IOException {
-		LOGGER.log(Level.FINE, "command: {0}", command.toString());
+		LOGGER.log(Level.FINE, ()->String.format("command: %s", command.toString()));
 		Response response = new Response();
 		if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
 			GraphicsDevice device = RoboUtil.getDefaultDevice(); // TODO use active screen
@@ -105,7 +105,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			}
 		} else if (DriverCommand.FIND_CHILD_ELEMENT.equals(command.getName())) {
 			Map<String, ?> parameters = command.getParameters();
-			String id = parameters.get("id").toString().toLowerCase();
+			String id = parameters.get("id").toString();
 			RoboScreen screen = RoboScreen.getScreenById(id);
 			assert "xpath".equals(parameters.get("using").toString().toLowerCase());
 			String value = parameters.get("value").toString().toLowerCase();
@@ -143,30 +143,37 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			if (action instanceof Sequence) {
 				Sequence seq = (Sequence) action;
 				Map<String, Object> encode = seq.encode();
-				LOGGER.log(Level.FINE, "ACTION raw data: {0}", encode);
+				LOGGER.log(Level.FINE, ()->String.format("ACTION raw data: %s", encode));
 				List<Object> actionList = (List<Object>) encode.get("actions");
 				
 				GraphicsDevice device = null; // target device must be defined by one of the following actions
+				int xElementScreenOffset = 0;
+				int yElementScreenOffset = 0;
 				for (Object actionObject : actionList) {
 					Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
 					final Object targetObject = actionDetails.get("origin");
 					if (targetObject == null) {
 						LOGGER.log(Level.FINE, "No screen device defined, using default screen.");
 						device = RoboUtil.getDefaultDevice();
-					} else if (! (targetObject instanceof RoboScreen)) {
+					} else if (targetObject instanceof RoboScreen) {
+						device = ((RoboScreen)targetObject).getDevice();
+					} else if (targetObject instanceof RoboScreenRectangle) {
+						RoboScreenRectangle rect = (RoboScreenRectangle)targetObject;
+						device = rect.getScreen().getDevice();
+						xElementScreenOffset = rect.getX();
+						yElementScreenOffset = rect.getY();
+					} else {
 						if (device == null) { // expected that device was determined by the 'origin' of a previous action
 							throw new RuntimeException(String.format("No device defined, maybe invalid target element type '%s', '%s' is needed.", targetObject.toString(), RoboScreen.class.getName()));
 						}
-					} else {
-						device = ((RoboScreen)targetObject).getDevice();
 					}
 					String actionType = (String) actionDetails.get("type");
-					LOGGER.log(Level.FINE, "action type = '{0}'", actionType);
+					LOGGER.log(Level.FINE, ()->String.format("action type = '%s'", actionType));
 					switch (actionType) {
 					case "pointerMove": 
 						Long tickDuration = (Long) actionDetails.get("duration");
-						Integer movePosX = (Integer) actionDetails.get("x");
-						Integer movePosY = (Integer) actionDetails.get("y");
+						Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
+						Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
 						RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
@@ -179,7 +186,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				}
 			}
 		}
-		LOGGER.log(Level.SEVERE, "unknown actions: {0}", actions);
+		LOGGER.log(Level.SEVERE, ()->String.format("unknown actions: %s", actions));
 		return false;
 	}
 

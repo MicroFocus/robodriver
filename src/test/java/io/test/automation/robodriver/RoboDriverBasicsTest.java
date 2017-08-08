@@ -1,5 +1,6 @@
 package io.test.automation.robodriver;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -89,6 +90,16 @@ public class RoboDriverBasicsTest {
 		} catch (Exception e) {
 			assertTrue(e.getCause().getMessage().contains("999991"));
 		}
+	}
+	
+	@Test
+	public void testRoboScreenCaching() {
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
+		RoboScreen screen = (RoboScreen) roboDriver.findElementByXPath("//screen[@default=true]");
+		
+		assertEquals(screen.getDevice().getIDstring(), screen.getId());
+		assertEquals(screen.getDevice().getIDstring(), RoboScreen.getScreenById(screen.getId()).getId());
 	}
 	
 	@Test

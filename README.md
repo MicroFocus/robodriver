@@ -20,5 +20,18 @@ new Actions(robo)
 	.perform();
 ```
 
+## Drag & Drop
 
+For drag and drop it is needed to provide a source and target element. For those elements a `//rectangle` of a screen
+can be used, for example:
+
+```
+WebElement source = screen.findElement(
+	By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", xFrom, yFrom)));
+WebElement target = screen.findElement(
+	By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", xTo, yTo)));
   
+new Actions(robo)
+	.dragAndDrop(source, target)
+	.perform();
+```
