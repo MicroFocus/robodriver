@@ -23,6 +23,8 @@ public class TestUtil {
 	
 	private static final int GUESS_X = 115;
 	private static final int GUESS_Y = 245;
+	private GeckoDriverService geckoDriverService;
+	private ChromeDriverService chromeDriverService;
 
 	public void navigateToTestPage(RemoteWebDriver driver) throws MalformedURLException {
 		File testPageFile = new File(this.getClass().getClassLoader().getResource("test.html").getFile());
@@ -37,12 +39,12 @@ public class TestUtil {
 	
 	private URL startLocalFirefox() throws IOException {
 		FirefoxOptions options = new FirefoxOptions();
-		GeckoDriverService service = new GeckoDriverService.Builder()
+		geckoDriverService = new GeckoDriverService.Builder()
 				.usingAnyFreePort()
 				.usingFirefoxBinary(options.getBinary())
 				.build();
-		service.start();
-		URL url = service.getUrl();
+		geckoDriverService.start();
+		URL url = geckoDriverService.getUrl();
 		return url;
 	}
 
@@ -52,14 +54,28 @@ public class TestUtil {
 	}
 	
 	private URL startLocalChrome() throws IOException {
-		ChromeDriverService service = new ChromeDriverService.Builder()
+		chromeDriverService = new ChromeDriverService.Builder()
 				.usingAnyFreePort()
 				.build();
-		service.start();
-		URL url = service.getUrl();
+		chromeDriverService.start();
+		URL url = chromeDriverService.getUrl();
 		return url;
 	}
 	
+	public void stopServices() {
+		try {
+			if (geckoDriverService != null) {
+				geckoDriverService.stop();
+			}
+			if (chromeDriverService != null) {
+				chromeDriverService.stop();
+			}
+		} finally {
+			geckoDriverService = null;
+			chromeDriverService = null;
+		}
+	}
+
 	public boolean isWindows() {
 		return System.getProperty("os.name").toLowerCase().contains("win");
 	}
@@ -112,8 +128,8 @@ public class TestUtil {
 		System.out.println(System.getProperty("os.name"));
 		
 		RemoteWebDriver driver = null;
+		TestUtil util = new TestUtil();
 		try {
-			TestUtil util = new TestUtil();
 			driver = util.startChrome();
 			util.navigateToTestPage(driver);
 		} catch (IOException e) {
@@ -121,6 +137,7 @@ public class TestUtil {
 		} finally {
 			if (driver != null) {
 				driver.quit();
+				util.stopServices();
 			}
 		}
 	}

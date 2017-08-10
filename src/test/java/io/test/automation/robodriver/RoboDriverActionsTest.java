@@ -18,12 +18,13 @@ public class RoboDriverActionsTest {
 
 	private static Point CASP; // click area screen position of left upper corner
 	private static RemoteWebDriver BROWSER;
+	private static TestUtil util;
 	
 	private RoboDriver robo;
 
 	@BeforeClass
 	public static void onBeforeClass() throws IOException {
-		TestUtil util = new TestUtil();
+		util = new TestUtil();
 		BROWSER = util.startFirefox();
 		util.navigateToTestPage(BROWSER);
 		WebElement clickInfo = BROWSER.findElementById("outputs");
@@ -35,12 +36,13 @@ public class RoboDriverActionsTest {
 	public static void onAfterClass() {
 		if (BROWSER != null) {
 			BROWSER.quit();
+			util.stopServices();
 		}
 	}
 
 	@Before
 	public void onBeforeTest() throws IOException {
-		(new TestUtil()).clearInfoTextField(BROWSER);
+		util.clearInfoTextField(BROWSER);
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		robo = new RoboDriver(roboCapabilities);
 	}

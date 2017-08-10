@@ -4,6 +4,7 @@ package io.test.automation.robodriver.internal;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
 
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -48,16 +48,24 @@ public class RoboUtil {
 		for (int j = 0; j < gs.length; j++) {
 			GraphicsDevice gd = gs[j];
 			System.out.println("device[" + j + "]: " + gd);
-			GraphicsConfiguration[] gc = gd.getConfigurations();
-			for (int i = 0; i < gc.length; i++) {
-				JFrame f = new JFrame(gs[j].getDefaultConfiguration());
-				Canvas c = new Canvas(gc[i]);
-				java.awt.Rectangle gcBounds = gc[i].getBounds();
+			GraphicsConfiguration[] gconfs = gd.getConfigurations();
+			int i = 0;
+			for (GraphicsConfiguration gconf : gconfs) {
+				System.out.println("gconf[" + i + "]: " + gconf);
+				AffineTransform transform = gconf.getDefaultTransform();
+				System.out.println(transform);
+				System.out.println("scale x = " + transform.getScaleX());
+				System.out.println("scale y = " + transform.getScaleY());
+				/*JFrame f = new JFrame(gs[j].getDefaultConfiguration());
+				Canvas c = new Canvas(gconf);
+				java.awt.Rectangle gcBounds = gconf.getBounds();
 				int xoffs = gcBounds.x;
 				int yoffs = gcBounds.y;
 				f.getContentPane().add(c);
 				f.setLocation((i * 50) + xoffs, (i * 60) + yoffs);
 				f.setVisible(true);
+				*/
+				i++;
 			}
 		}
 	}
@@ -75,7 +83,7 @@ public class RoboUtil {
 				virtualBounds = virtualBounds.union(bounds);
 			}
 		} 
-		System.out.println("virtualBounds=" + virtualBounds);
+		System.out.printf("virtualBounds of %s screens = %s%n", gdevices.length, virtualBounds);
 	}
 
 	public static void clacDefaultVirtualBounds() {
