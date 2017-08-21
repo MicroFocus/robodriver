@@ -3,10 +3,10 @@ package io.test.automation.robodriver;
 import java.awt.*;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -39,7 +39,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	// TODO use XPath API instead of simple parsing
 	@Override
 	public Response execute(Command command) throws IOException {
-		LOGGER.log(Level.FINE, ()->String.format("command: %s", command.toString()));
+		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
 		Response response = new Response();
 		if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
 			GraphicsDevice device = RoboUtil.getDefaultDevice(); // TODO use active screen
@@ -132,62 +132,87 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			response.setSessionId(Long.toString(System.currentTimeMillis()));
 		} else if (DriverCommand.ACTIONS.equals(command.getName())) {
 			handleActionsW3C_Selenium_3_4(command);
+		} else {
+			LOGGER.log(Level.INFO, ()->String.format("ignored command: '%s' - %s", command.getName(), command.toString()));
 		}
 		return response;
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean handleActionsW3C_Selenium_3_4(Command command) {
-		Set<?> actions = (Set<?>) command.getParameters().get("actions");
-		for (Object action : actions) {
-			if (action instanceof Sequence) {
-				Sequence seq = (Sequence) action;
-				Map<String, Object> encode = seq.encode();
-				LOGGER.log(Level.FINE, ()->String.format("ACTION raw data: %s", encode));
-				List<Object> actionList = (List<Object>) encode.get("actions");
-				
-				GraphicsDevice device = null; // target device must be defined by one of the following actions
-				int xElementScreenOffset = 0;
-				int yElementScreenOffset = 0;
-				for (Object actionObject : actionList) {
-					Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
-					final Object targetObject = actionDetails.get("origin");
-					if (targetObject == null) {
-						LOGGER.log(Level.FINE, "No screen device defined, using default screen.");
-						device = RoboUtil.getDefaultDevice();
-					} else if (targetObject instanceof RoboScreen) {
-						device = ((RoboScreen)targetObject).getDevice();
-					} else if (targetObject instanceof RoboScreenRectangle) {
-						RoboScreenRectangle rect = (RoboScreenRectangle)targetObject;
-						device = rect.getScreen().getDevice();
-						xElementScreenOffset = rect.getX();
-						yElementScreenOffset = rect.getY();
-					} else {
-						if (device == null) { // expected that device was determined by the 'origin' of a previous action
-							throw new RuntimeException(String.format("No device defined, maybe invalid target element type '%s', '%s' is needed.", targetObject.toString(), RoboScreen.class.getName()));
-						}
-					}
-					String actionType = (String) actionDetails.get("type");
-					LOGGER.log(Level.FINE, ()->String.format("action type = '%s'", actionType));
-					switch (actionType) {
-					case "pointerMove": 
-						Long tickDuration = (Long) actionDetails.get("duration");
-						Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
-						Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
-						RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
-						break;
-					case "pointerDown":
-						RoboUtil.mouseDown(device);
-						break;
-					case "pointerUp":
-						RoboUtil.mouseUp(device);
-						break;
-					}
+		Object actionsObject = command.getParameters().get("actions");
+		if (actionsObject instanceof Collection<?>) {
+			Collection<?> actions = (Collection<?>) actionsObject;
+			for (Object action : actions) {
+				if (action instanceof Sequence) {
+					handleSequenceW3C_Selenium_3_4((Sequence)action);
 				}
 			}
+			LOGGER.log(Level.SEVERE, ()->String.format("unknown actions: %s", actions));
 		}
-		LOGGER.log(Level.SEVERE, ()->String.format("unknown actions: %s", actions));
+
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void handleSequenceW3C_Selenium_3_4(Sequence seq) {
+		Map<String, Object> encode = seq.encode();
+		LOGGER.log(Level.FINE, ()->String.format("ACTION sequence raw data: %s", encode));
+		List<Object> sequenceActionList = (List<Object>) encode.get("actions");
+
+		GraphicsDevice device = null; // target device must be defined by one of the following actions
+		int xElementScreenOffset = 0;
+		int yElementScreenOffset = 0;
+		for (Object actionObject : sequenceActionList) {
+			Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
+			LOGGER.log(Level.FINE, () -> {return String.format("action details list: %s", actionDetails);});
+			final Object targetObject = actionDetails.get("origin");
+			if (targetObject == null) {
+				LOGGER.log(Level.FINE, "No screen device defined, using default screen.");
+				device = RoboUtil.getDefaultDevice();
+			} else if (targetObject instanceof RoboScreen) {
+				device = ((RoboScreen)targetObject).getDevice();
+			} else if (targetObject instanceof RoboScreenRectangle) {
+				RoboScreenRectangle rect = (RoboScreenRectangle)targetObject;
+				device = rect.getScreen().getDevice();
+				xElementScreenOffset = rect.getX();
+				yElementScreenOffset = rect.getY();
+			} else {
+				if (device == null) { // expected that device was determined by the 'origin' of a previous action
+					throw new RuntimeException(String.format("No device defined, maybe invalid target element type '%s', '%s' is needed.", targetObject.toString(), RoboScreen.class.getName()));
+				}
+			}
+			final String actionDetailType = (String) actionDetails.get("type");
+			LOGGER.log(Level.FINE, ()->String.format("action type = '%s'", actionDetailType));
+			switch (actionDetailType) {
+			// pointer actions
+			case "pointerMove": 
+				Long tickDuration = (Long) actionDetails.get("duration");
+				Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
+				Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
+				RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
+				break;
+			case "pointerDown":
+				RoboUtil.mouseDown(device);
+				break;
+			case "pointerUp":
+				RoboUtil.mouseUp(device);
+				break;
+			// key actions
+			case "pause":
+				// nothing to do 
+				break;
+			case "keyDown":
+				String value = (String) actionDetails.get("value");
+				RoboUtil.keyDown(device, value.charAt(0));
+				break;
+			case "keyUp":
+				value = (String) actionDetails.get("value");
+				RoboUtil.keyUp(device, value.charAt(0));
+				break;
+			default:
+				LOGGER.log(Level.FINE, () -> {return String.format("unknown action type '%s'", actionDetailType);});
+			}
+		}
 	}
 
 	private GraphicsDevice getDevice(Map<String, ?> parameters) {

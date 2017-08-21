@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.junit.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -56,7 +57,6 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testSendKeys() throws Exception {
-		// given
 		WebElement textInputField = BROWSER.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
@@ -65,7 +65,55 @@ public class RoboDriverActionsTest {
 		screen.sendKeys("hello");
 		
 		// then
-		assertEquals(textInputField.getAttribute("value"), "hello");
+		assertEquals("hello", textInputField.getAttribute("value"));
+	}
+	
+	@Test
+	public void testSendKeyActions() throws Exception {
+		WebElement textInputField = BROWSER.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		new Actions(robo)
+			.sendKeys("hello")
+			.perform();
+		
+		// then
+		assertEquals("hello", textInputField.getAttribute("value"));
+	}
+	
+	@Test
+	public void testSendShiftKeyActions() throws Exception {
+		WebElement textInputField = BROWSER.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+
+		// when
+		new Actions(robo)
+			.keyDown(Keys.SHIFT)
+			.sendKeys("hello")
+			.keyUp(Keys.SHIFT)
+			.perform();
+
+		// then
+		assertEquals("HELLO", textInputField.getAttribute("value"));
+	}
+	
+	@Test
+	@Ignore // FIX Selenium 3.4 binding adds click to (0,0) actions to the target element to bring it in focus, that is bad and not needed!
+	public void testSendShiftKeyWithTargetActions() throws Exception {
+		WebElement textInputField = BROWSER.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.keyDown(screen, Keys.SHIFT)
+			.sendKeys(screen, "hello")
+			.keyUp(screen, Keys.SHIFT)
+			.perform();
+		
+		// then
+		assertEquals("HELLO", textInputField.getAttribute("value"));
 	}
 	
 	@Test

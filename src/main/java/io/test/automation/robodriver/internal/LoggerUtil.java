@@ -1,5 +1,16 @@
 package io.test.automation.robodriver.internal;
 
+/**
+ * Java logging utility.
+ * 
+ * To enable debug logging set system property:
+ * <pre> 
+ *   -Djava.util.logging.config.file="./src/test/resources/logging.properties"
+ * </pre>
+ * 
+ * @author geralde
+ *
+ */
 public class LoggerUtil {
 
 	private static final String JAVA_UTIL_LOGGING_SIMPLE_FORMATTER_FORMAT = "java.util.logging.SimpleFormatter.format";
@@ -8,7 +19,7 @@ public class LoggerUtil {
 		if (! isLoggingFormatterDefined()) {
 			// set logging formatter, see also:
 			// https://docs.oracle.com/javase/8/docs/api/java/util/logging/SimpleFormatter.html#format(java.util.logging.LogRecord)
-			System.setProperty(JAVA_UTIL_LOGGING_SIMPLE_FORMATTER_FORMAT, "[%1$tc] %4$.4s: %5$s - %2$s %6$s%n");
+			System.setProperty(JAVA_UTIL_LOGGING_SIMPLE_FORMATTER_FORMAT, "[%1$tc][robo] %4$.4s: %5$s - %2$s %6$s%n");
 		}
 	}
 

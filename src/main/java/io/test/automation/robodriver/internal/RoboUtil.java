@@ -25,17 +25,17 @@ public class RoboUtil {
 	
 	private static Map<String, Robot> robots = new HashMap<>();
 
-	private static Map<Keys, Integer> webDriverKeyMap = new HashMap<>();
+	private static Map<Character, Integer> webDriverKeyToOsKeyMap = new HashMap<>();
 	
 	static {
-		webDriverKeyMap.put(Keys.SHIFT, KeyEvent.VK_SHIFT);
-		webDriverKeyMap.put(Keys.ALT, KeyEvent.VK_ALT);
-		webDriverKeyMap.put(Keys.CONTROL, KeyEvent.VK_CONTROL);
+		webDriverKeyToOsKeyMap.put(Keys.SHIFT.charAt(0), KeyEvent.VK_SHIFT);
+		webDriverKeyToOsKeyMap.put(Keys.ALT.charAt(0), KeyEvent.VK_ALT);
+		webDriverKeyToOsKeyMap.put(Keys.CONTROL.charAt(0), KeyEvent.VK_CONTROL);
 		String osName = System.getProperty("os.name", "").toLowerCase();
 		if (osName.contains("mac")) {
-			webDriverKeyMap.put(Keys.COMMAND, KeyEvent.VK_META);
+			webDriverKeyToOsKeyMap.put(Keys.COMMAND.charAt(0), KeyEvent.VK_META);
 		} else {
-			webDriverKeyMap.put(Keys.COMMAND, KeyEvent.VK_WINDOWS);
+			webDriverKeyToOsKeyMap.put(Keys.COMMAND.charAt(0), KeyEvent.VK_WINDOWS);
 		}
 		// TODO...
 	}
@@ -146,12 +146,13 @@ public class RoboUtil {
 		for (CharSequence charSeq : keysToSend) {
 			for (int i = 0; i < charSeq.length(); i++) {
 				char c = charSeq.charAt(i);
-				try {
-					int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
+				Integer keyCode = getOsKeyCode(c);
+				if (keyCode != null) {
 					robot.keyPress(keyCode);
 					robot.keyRelease(keyCode);
-				} catch (Exception e) {
-					System.err.println(e.getMessage());
+				} else {
+					LOGGER.log(Level.INFO, ()->String.format("sendKeys: no key code found for character, numeric/type = %d/%d", 
+							Character.getNumericValue(c), Character.getType(c)));
 				}
 			}
 		}
@@ -194,10 +195,37 @@ public class RoboUtil {
 		getRobot(device).mouseMove(movePosX, movePosY);
 	}
 
-	public static int getKey(Keys key) {
-		return webDriverKeyMap.get(key);
+	public static void keyDown(GraphicsDevice device, char c) {
+		LOGGER.log(Level.FINE, ()->String.format("key down, c=%c, device=%s", c, device)); 
+		Integer osKey = getOsKeyCode(c);
+		if (osKey != null) {
+			getRobot(device).keyPress(osKey);
+		} else {
+			LOGGER.log(Level.INFO, ()-> String.format("key down: no key code found for character, numeric/type = %d/%d", 
+					Character.getNumericValue(c), Character.getType(c)));
+		}
 	}
 
+	public static void keyUp(GraphicsDevice device, char c) {
+		LOGGER.log(Level.FINE, ()->String.format("key up, c=%c, device=%s", c, device)); 
+		Integer osKey = getOsKeyCode(c);
+		if (osKey != null) {
+			getRobot(device).keyRelease(osKey);
+		} else {
+			LOGGER.log(Level.INFO, ()->String.format("key up: no key code found for character, numeric/type = %d/%d", 
+					Character.getNumericValue(c), Character.getType(c)));
+		}
+	}
+
+	private static Integer getOsKeyCode(Character c) {
+		int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
+		if (keyCode != KeyEvent.VK_UNDEFINED) {
+			return keyCode;
+		} else {
+			return webDriverKeyToOsKeyMap.get(c);
+		}
+	}
+	
 	public static void main(String[] args) {
 		showScreenDevices();
 		clacVirtualBounds();
