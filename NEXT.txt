@@ -1,0 +1,9 @@
+- support remote execution
+
+- extend supported modifier keys
+
+- implement mouse buttons
+
+- implement screenshot for screens and rectangles
+
+- expose wait-for-idle delay in milliseconds as a capability

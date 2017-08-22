@@ -117,6 +117,26 @@ public class RoboDriverActionsTest {
 	}
 	
 	@Test
+	public void testMixedKeyMouseActions() throws Exception {
+		WebElement textInputField = BROWSER.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.keyDown(Keys.SHIFT)
+			.sendKeys("hello")
+			.keyUp(Keys.SHIFT)
+			.sendKeys(Keys.RETURN)
+			.moveToElement(screen, CASP.getX() + 100, CASP.getY() + 100)
+			.click()
+			.perform();
+		
+		// then
+		assertEquals("HELLO\nmouse move: from (100,100) to (100,100)\nclick pos: 100,100", textInputField.getAttribute("value").trim());
+	}
+	
+	@Test
 	public void testClick() throws Exception {
 		// given
 		WebElement clickInfo = BROWSER.findElementById("outputs");
@@ -149,7 +169,7 @@ public class RoboDriverActionsTest {
 			.perform();
 		
 		// then
-		assertEquals("mouse move: from (1,1) to (100,100)", outputs.getAttribute("value"));
+		assertEquals("mouse move: from (1,1) to (100,100)", outputs.getAttribute("value").trim());
 	}
 	
 	@Test
@@ -165,6 +185,6 @@ public class RoboDriverActionsTest {
 		.perform();
 		
 		// then
-		assertEquals("mouse move: from (100,100) to (120,120)", outputs.getAttribute("value"));
+		assertEquals("mouse move: from (100,100) to (120,120)", outputs.getAttribute("value").trim());
 	}
 }

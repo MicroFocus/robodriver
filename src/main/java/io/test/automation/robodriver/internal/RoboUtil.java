@@ -31,6 +31,7 @@ public class RoboUtil {
 		webDriverKeyToOsKeyMap.put(Keys.SHIFT.charAt(0), KeyEvent.VK_SHIFT);
 		webDriverKeyToOsKeyMap.put(Keys.ALT.charAt(0), KeyEvent.VK_ALT);
 		webDriverKeyToOsKeyMap.put(Keys.CONTROL.charAt(0), KeyEvent.VK_CONTROL);
+		webDriverKeyToOsKeyMap.put(Keys.RETURN.charAt(0), KeyEvent.VK_ENTER);
 		String osName = System.getProperty("os.name", "").toLowerCase();
 		if (osName.contains("mac")) {
 			webDriverKeyToOsKeyMap.put(Keys.COMMAND.charAt(0), KeyEvent.VK_META);
@@ -179,24 +180,24 @@ public class RoboUtil {
 	}
 
 	public static void mouseDown(GraphicsDevice device) {
-		LOGGER.log(Level.FINE, ()->String.format("mouse down, device=%s", device)); 
+		LOGGER.log(Level.FINEST, ()->String.format("mouse down, device=%s", device)); 
 		getRobot(device).mousePress(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
 	public static void mouseUp(GraphicsDevice device) {
-		LOGGER.log(Level.FINE, ()->String.format("mouse up, device=%s", device)); 
+		LOGGER.log(Level.FINEST, ()->String.format("mouse up, device=%s", device)); 
 		getRobot(device).mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
 	public static void mouseMove(GraphicsDevice device, Long tickDuration, Integer movePosX, Integer movePosY) {
-		LOGGER.log(Level.FINE, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
+		LOGGER.log(Level.FINEST, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
 				movePosX, movePosY, tickDuration, device));
 		// TODO implement move ticks
 		getRobot(device).mouseMove(movePosX, movePosY);
 	}
 
 	public static void keyDown(GraphicsDevice device, char c) {
-		LOGGER.log(Level.FINE, ()->String.format("key down, c=%c, device=%s", c, device)); 
+		LOGGER.log(Level.FINEST, ()->String.format("key down, c=%c, device=%s", c, device)); 
 		Integer osKey = getOsKeyCode(c);
 		if (osKey != null) {
 			getRobot(device).keyPress(osKey);
@@ -207,7 +208,7 @@ public class RoboUtil {
 	}
 
 	public static void keyUp(GraphicsDevice device, char c) {
-		LOGGER.log(Level.FINE, ()->String.format("key up, c=%c, device=%s", c, device)); 
+		LOGGER.log(Level.FINEST, ()->String.format("key up, c=%c, device=%s", c, device)); 
 		Integer osKey = getOsKeyCode(c);
 		if (osKey != null) {
 			getRobot(device).keyRelease(osKey);

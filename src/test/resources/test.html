@@ -25,7 +25,7 @@
         elem.onclick = function(event) { 
            var upAndDown = (mousedownX == event.offsetX && mousedownY == event.offsetY)
            if (upAndDown) {
-             out.value = "click pos: " + event.offsetX + "," + event.offsetY;
+             out.value += "click pos: " + event.offsetX + "," + event.offsetY + "\n";
            }
            drawLine(event.offsetX - 5,  event.offsetY, event.offsetX + 5,  event.offsetY);
            drawLine(event.offsetX,  event.offsetY - 5, event.offsetX,  event.offsetY + 5);
@@ -35,8 +35,8 @@
           mousedownY = event.offsetY; 
         };
         elem.onmouseup = function(event) { 
-          out.value = "mouse move: from (" + mousedownX + "," + mousedownY + ") to ("
-              + event.offsetX + "," + event.offsetY + ")";
+          out.value += "mouse move: from (" + mousedownX + "," + mousedownY + ") to ("
+              + event.offsetX + "," + event.offsetY + ")\n";
           drawLine(mousedownX, mousedownY, event.offsetX,  event.offsetY);
         };
         

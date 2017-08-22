@@ -3,6 +3,7 @@ package io.test.automation.robodriver;
 import java.awt.*;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -19,10 +20,7 @@ import org.openqa.selenium.remote.CommandExecutor;
 import org.openqa.selenium.remote.DriverCommand;
 import org.openqa.selenium.remote.Response;
 
-import io.test.automation.robodriver.internal.LoggerUtil;
-import io.test.automation.robodriver.internal.RoboScreen;
-import io.test.automation.robodriver.internal.RoboScreenRectangle;
-import io.test.automation.robodriver.internal.RoboUtil;
+import io.test.automation.robodriver.internal.*;
 
 public class RoboDriverCommandExecutor implements CommandExecutor {
 	
@@ -138,88 +136,49 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		return response;
 	}
 
-	private boolean handleActionsW3C_Selenium_3_4(Command command) {
-		Object actionsObject = command.getParameters().get("actions");
-		if (actionsObject instanceof Collection<?>) {
-			Collection<?> actions = (Collection<?>) actionsObject;
-			for (Object action : actions) {
-				if (action instanceof Sequence) {
-					handleSequenceW3C_Selenium_3_4((Sequence)action);
-				}
-			}
-			LOGGER.log(Level.SEVERE, ()->String.format("unknown actions: %s", actions));
-		}
-
-		return false;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void handleSequenceW3C_Selenium_3_4(Sequence seq) {
-		Map<String, Object> encode = seq.encode();
-		LOGGER.log(Level.FINE, ()->String.format("ACTION sequence raw data: %s", encode));
-		List<Object> sequenceActionList = (List<Object>) encode.get("actions");
-
-		GraphicsDevice device = null; // target device must be defined by one of the following actions
-		int xElementScreenOffset = 0;
-		int yElementScreenOffset = 0;
-		for (Object actionObject : sequenceActionList) {
-			Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
-			LOGGER.log(Level.FINE, () -> {return String.format("action details list: %s", actionDetails);});
-			final Object targetObject = actionDetails.get("origin");
-			if (targetObject == null) {
-				LOGGER.log(Level.FINE, "No screen device defined, using default screen.");
-				device = RoboUtil.getDefaultDevice();
-			} else if (targetObject instanceof RoboScreen) {
-				device = ((RoboScreen)targetObject).getDevice();
-			} else if (targetObject instanceof RoboScreenRectangle) {
-				RoboScreenRectangle rect = (RoboScreenRectangle)targetObject;
-				device = rect.getScreen().getDevice();
-				xElementScreenOffset = rect.getX();
-				yElementScreenOffset = rect.getY();
-			} else {
-				if (device == null) { // expected that device was determined by the 'origin' of a previous action
-					throw new RuntimeException(String.format("No device defined, maybe invalid target element type '%s', '%s' is needed.", targetObject.toString(), RoboScreen.class.getName()));
-				}
-			}
-			final String actionDetailType = (String) actionDetails.get("type");
-			LOGGER.log(Level.FINE, ()->String.format("action type = '%s'", actionDetailType));
-			switch (actionDetailType) {
-			// pointer actions
-			case "pointerMove": 
-				Long tickDuration = (Long) actionDetails.get("duration");
-				Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
-				Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
-				RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
-				break;
-			case "pointerDown":
-				RoboUtil.mouseDown(device);
-				break;
-			case "pointerUp":
-				RoboUtil.mouseUp(device);
-				break;
-			// key actions
-			case "pause":
-				// nothing to do 
-				break;
-			case "keyDown":
-				String value = (String) actionDetails.get("value");
-				RoboUtil.keyDown(device, value.charAt(0));
-				break;
-			case "keyUp":
-				value = (String) actionDetails.get("value");
-				RoboUtil.keyUp(device, value.charAt(0));
-				break;
-			default:
-				LOGGER.log(Level.FINE, () -> {return String.format("unknown action type '%s'", actionDetailType);});
-			}
-		}
-	}
-
 	private GraphicsDevice getDevice(Map<String, ?> parameters) {
 		if (parameters.containsKey("element")) {
 			return RoboUtil.getDeviceById((String)parameters.get("element"));
 		} else {
 			return RoboUtil.getDefaultDevice();
+		}
+	}
+
+	private boolean handleActionsW3C_Selenium_3_4(Command command) {
+		Object actionsObject = command.getParameters().get("actions");
+		if (actionsObject instanceof Collection<?>) {
+			Collection<?> actions = (Collection<?>) actionsObject;
+			List<RoboSequenceExecutor> sequences = new ArrayList<>();
+			startSequenceExecutors(actions, sequences);
+			executeSequenceTickByTick(sequences);
+		} else {
+			LOGGER.log(Level.SEVERE, ()->String.format("unknown actions type: %s", actionsObject));
+		}
+
+		return false;
+	}
+
+	private void executeSequenceTickByTick(List<RoboSequenceExecutor> sequences) {
+		boolean done; 
+		do {
+			LOGGER.log(Level.FINE, "TICK");
+			done = true;
+			for (RoboSequenceExecutor roboSequence : sequences) {
+				done &= !roboSequence.tick();
+			}
+		} while (!done);
+	}
+
+	private void startSequenceExecutors(Collection<?> actions, List<RoboSequenceExecutor> sequences) {
+		for (Object action : actions) {
+			if (action instanceof Sequence) {
+				sequences.add(new RoboSequenceExecutor((Sequence)action));
+			} else {
+				LOGGER.log(Level.SEVERE, ()->String.format("unknown action: %s", action));
+			}
+		}
+		for (RoboSequenceExecutor roboSequence : sequences) {
+			roboSequence.start();
 		}
 	}
 
