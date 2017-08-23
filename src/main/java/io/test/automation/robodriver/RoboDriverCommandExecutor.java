@@ -144,29 +144,51 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean handleActionsW3C_Selenium_3_4(Command command) {
-		Object actionsObject = command.getParameters().get("actions");
-		if (actionsObject instanceof Collection<?>) {
-			Collection<?> actions = (Collection<?>) actionsObject;
-			List<RoboSequenceExecutor> sequences = new ArrayList<>();
-			startSequenceExecutors(actions, sequences);
-			executeSequenceTickByTick(sequences);
-		} else {
-			LOGGER.log(Level.SEVERE, ()->String.format("unknown actions type: %s", actionsObject));
+	private void handleActionsW3C_Selenium_3_4(Command command) {
+		try {
+			Object actionsObject = command.getParameters().get("actions");
+			if (actionsObject instanceof Collection<?>) {
+				Collection<?> actions = (Collection<?>) actionsObject;
+				List<RoboSequenceExecutor> sequences = new ArrayList<>();
+				startSequenceExecutors(actions, sequences);
+				executeSequenceTickByTick(sequences);
+			} else {
+				LOGGER.log(Level.SEVERE, ()->String.format("unknown actions type: %s", actionsObject));
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
-
-		return false;
 	}
 
-	private void executeSequenceTickByTick(List<RoboSequenceExecutor> sequences) {
-		boolean done; 
+	private void executeSequenceTickByTick(List<RoboSequenceExecutor> sequences) throws Exception {
+		boolean completedAllTicks; 
 		do {
+			// start next tick for every sequence
+			completedAllTicks = true;
 			LOGGER.log(Level.FINE, "TICK");
-			done = true;
 			for (RoboSequenceExecutor roboSequence : sequences) {
-				done &= !roboSequence.tick();
+				completedAllTicks &= roboSequence.startNextTickAndIsAllExecuted();
 			}
-		} while (!done);
+			
+			if (!completedAllTicks) {
+				// wait until tick of every sequence is completed
+				boolean completedNextTickOfAllSequences;
+				synchronized (RoboSequenceExecutor.getNextTickOfAllSequencesExecutedSync()) {
+					do {
+						completedNextTickOfAllSequences = true;
+						for (RoboSequenceExecutor roboSequence : sequences) {
+							completedNextTickOfAllSequences = roboSequence.isNextTickCompleted();
+							if (!completedNextTickOfAllSequences) {
+								RoboSequenceExecutor.getNextTickOfAllSequencesExecutedSync().wait();
+								break;
+							}
+						}
+					} while (!completedNextTickOfAllSequences);
+				}
+			} else {
+				LOGGER.log(Level.FINE, "TICK: all executed");
+			}
+		} while (!completedAllTicks);
 	}
 
 	private void startSequenceExecutors(Collection<?> actions, List<RoboSequenceExecutor> sequences) {
