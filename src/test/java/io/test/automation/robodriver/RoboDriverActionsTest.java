@@ -26,7 +26,7 @@ public class RoboDriverActionsTest {
 	@BeforeClass
 	public static void onBeforeClass() throws IOException {
 		util = new TestUtil();
-		BROWSER = util.startFirefox();
+		BROWSER = util.startChrome();
 		util.navigateToTestPage(BROWSER);
 		WebElement clickInfo = BROWSER.findElementById("outputs");
 		CASP = util.getAbsoluteClickAreaPosition(BROWSER, clickInfo);

@@ -33,6 +33,7 @@ public class TestUtil {
 	}
 	
 	public RemoteWebDriver startFirefox() throws IOException {
+		//System.setProperty(FirefoxDriver.SystemProperty.BROWSER_BINARY, "C:\\Program Files (x86)\\Mozilla Firefox_50\\firefox.exe");
 		URL url = startLocalFirefox();
 		return new RemoteWebDriver(url, (new FirefoxOptions().toCapabilities()));
 	}
@@ -106,8 +107,8 @@ public class TestUtil {
 		int xdeltaToCenter = 100 - areaClickPosX;
 		int ydeltaToCenter = 100 - areaClickPosY;
 		clearInfoTextField(browser);
-		return new Point(windowScreenPos.getX() + GUESS_X - 100 - xdeltaToCenter, 
-				windowScreenPos.getY() + GUESS_Y - 100 - ydeltaToCenter);
+		return new Point(windowScreenPos.getX() + GUESS_X - 100 + xdeltaToCenter, 
+				windowScreenPos.getY() + GUESS_Y - 100 + ydeltaToCenter);
 	}
 
 	public void clearInfoTextField(RemoteWebDriver browser) {
