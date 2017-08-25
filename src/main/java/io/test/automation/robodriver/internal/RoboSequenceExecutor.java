@@ -12,8 +12,6 @@ import io.test.automation.robodriver.RoboDriverCommandExecutor;
 
 public class RoboSequenceExecutor extends Thread {
 	
-	private static final Object NEXT_TICK_OF_ALL_SEQUENCES_EXECUTED_SYNC = new Object();
-
 	private static Logger LOGGER = LoggerUtil.get(RoboDriverCommandExecutor.class);
 	
 	private Sequence seq;
@@ -43,39 +41,33 @@ public class RoboSequenceExecutor extends Thread {
 		synchronized (tickLock) {
 			super.start();
 			try {
-				tickLock.wait(); // until thread started and ready to execute ticks
+				tickLock.wait(); // until thread is ready to execute ticks
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 		}
 	}
 	
-	public static Object getNextTickOfAllSequencesExecutedSync() {
-		return NEXT_TICK_OF_ALL_SEQUENCES_EXECUTED_SYNC;
-	}
-
 	/**
 	 * 
-	 * @return true if all ticks of this sequence is executed
+	 * @return true if all ticks of this sequence are executed
 	 */
 	public boolean startNextTickAndIsAllExecuted() {
 		if (!allTicksCompleted) {
 			synchronized(tickLock) {
 				nextTickCompleted = false;
-				tickLock.notifyAll();
+				tickLock.notify();
 			}
 		}
 		return allTicksCompleted;
 	}
 
-	public boolean isNextTickCompleted() {
-		return nextTickCompleted;
-	}
-
-	private void notifyNextTickCompleted() {
-		nextTickCompleted = true;
-		synchronized (NEXT_TICK_OF_ALL_SEQUENCES_EXECUTED_SYNC) {
-			NEXT_TICK_OF_ALL_SEQUENCES_EXECUTED_SYNC.notifyAll();
+	public void waitForNextTickCompleted() throws InterruptedException {
+		synchronized(tickLock) {
+			if (nextTickCompleted) {
+				return;
+			}
+			tickLock.wait();
 		}
 	}
 
@@ -89,9 +81,9 @@ public class RoboSequenceExecutor extends Thread {
 			GraphicsDevice device = null; // target device must be defined by one of the following actions
 			int xElementScreenOffset = 0;
 			int yElementScreenOffset = 0;
-			tickLock.notifyAll(); // ready to execute ticks
+			tickLock.notify(); // ready to execute first tick
 			for (Object actionObject : sequenceActionList) {
-				try {
+				try { // TODO extract method for single tick execution
 					tickLock.wait();
 					Map<String, Object> actionDetails = (Map<String, Object>) actionObject;
 					LOGGER.log(Level.FINE, () -> {
@@ -149,7 +141,8 @@ public class RoboSequenceExecutor extends Thread {
 						});
 					}
 				} finally {
-					notifyNextTickCompleted();
+					nextTickCompleted = true;
+					tickLock.notify(); // ready to execute next tick (keep in finally block!)
 				}
 			}
 		}

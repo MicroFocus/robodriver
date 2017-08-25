@@ -151,7 +151,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				Collection<?> actions = (Collection<?>) actionsObject;
 				List<RoboSequenceExecutor> sequences = new ArrayList<>();
 				startSequenceExecutors(actions, sequences);
-				executeSequenceTickByTick(sequences);
+				executeSequencesTickByTick(sequences);
 			} else {
 				LOGGER.log(Level.SEVERE, ()->String.format("unknown actions type: %s", actionsObject));
 			}
@@ -160,33 +160,21 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private void executeSequenceTickByTick(List<RoboSequenceExecutor> sequences) throws Exception {
+	private void executeSequencesTickByTick(List<RoboSequenceExecutor> sequences) throws Exception {
 		boolean completedAllTicks; 
+		LOGGER.log(Level.FINE, ()->String.format("TICK - start execution for %d sequences", sequences.size()));
 		do {
 			// start next tick for every sequence
-			completedAllTicks = true;
 			LOGGER.log(Level.FINE, "TICK");
+			completedAllTicks = true;
 			for (RoboSequenceExecutor roboSequence : sequences) {
 				completedAllTicks &= roboSequence.startNextTickAndIsAllExecuted();
 			}
-			
-			if (!completedAllTicks) {
-				// wait until tick of every sequence is completed
-				boolean completedNextTickOfAllSequences;
-				synchronized (RoboSequenceExecutor.getNextTickOfAllSequencesExecutedSync()) {
-					do {
-						completedNextTickOfAllSequences = true;
-						for (RoboSequenceExecutor roboSequence : sequences) {
-							completedNextTickOfAllSequences = roboSequence.isNextTickCompleted();
-							if (!completedNextTickOfAllSequences) {
-								RoboSequenceExecutor.getNextTickOfAllSequencesExecutedSync().wait();
-								break;
-							}
-						}
-					} while (!completedNextTickOfAllSequences);
-				}
-			} else {
-				LOGGER.log(Level.FINE, "TICK: all executed");
+			if (completedAllTicks) {
+				LOGGER.log(Level.FINE, "TICK - all completed");
+			}
+			for (RoboSequenceExecutor roboSequence : sequences) {
+				roboSequence.waitForNextTickCompleted();
 			}
 		} while (!completedAllTicks);
 	}
