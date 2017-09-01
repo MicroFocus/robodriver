@@ -44,7 +44,7 @@ public class RoboDriverBasicsTest {
 		WebElement screen = roboDriver.findElementByXPath("//screen[@default=true]");
 		assertNotNull(screen);
 		assertTrue(screen instanceof RoboScreen);
-		assertTrue(screen.toString(), screen.toString().contains("D3DGraphicsDevice[screen="));
+		assertTrue(screen.toString(), screen.toString().contains("GraphicsDevice"));
 		assertScrenRectangle(screen);
 	}
 
