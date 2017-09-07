@@ -189,10 +189,10 @@ public class RoboUtil {
 		getRobot(device).mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
+	// TODO throw exception if position is out of screen
 	public static void mouseMove(GraphicsDevice device, Long tickDuration, Integer movePosX, Integer movePosY) {
 		LOGGER.log(Level.FINEST, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
 				movePosX, movePosY, tickDuration, device));
-		// TODO implement move ticks
 		getRobot(device).mouseMove(movePosX, movePosY);
 	}
 

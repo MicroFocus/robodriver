@@ -17,8 +17,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 public class RoboDriverActionsTest {
 
-	private static Point CASP; // click area screen position of left upper corner
-	private static RemoteWebDriver BROWSER;
+	private static Point casp; // click area screen position of left upper corner
+	private static RemoteWebDriver browser;
 	private static TestUtil util;
 	
 	private RoboDriver robo;
@@ -26,24 +26,26 @@ public class RoboDriverActionsTest {
 	@BeforeClass
 	public static void onBeforeClass() throws IOException {
 		util = new TestUtil();
-		BROWSER = util.startChrome();
-		util.navigateToTestPage(BROWSER);
-		WebElement clickInfo = BROWSER.findElementById("outputs");
-		CASP = util.getAbsoluteClickAreaPosition(BROWSER, clickInfo);
+		browser = util.startChrome();
+		util.navigateToTestPage(browser);
+		WebElement clickArea = browser.findElementById("clickarea");
+		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
+		
+		WebElement clickInfo = browser.findElementById("outputs");
 		assertTrue("click info must be empty", clickInfo.getAttribute("value").isEmpty());
 	}
 	
 	@AfterClass
 	public static void onAfterClass() {
-		if (BROWSER != null) {
-			BROWSER.quit();
+		if (browser != null) {
+			browser.quit();
 			util.stopServices();
 		}
 	}
 
 	@Before
 	public void onBeforeTest() throws IOException {
-		util.clearInfoTextField(BROWSER);
+		util.clearInfoTextField(browser);
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		robo = new RoboDriver(roboCapabilities);
 	}
@@ -57,7 +59,7 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testSendKeys() throws Exception {
-		WebElement textInputField = BROWSER.findElementById("outputs");
+		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
 		// when
@@ -70,7 +72,7 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testSendKeyActions() throws Exception {
-		WebElement textInputField = BROWSER.findElementById("outputs");
+		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
 		// when
@@ -84,7 +86,7 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testSendShiftKeyActions() throws Exception {
-		WebElement textInputField = BROWSER.findElementById("outputs");
+		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
 		// when
@@ -101,7 +103,7 @@ public class RoboDriverActionsTest {
 	@Test
 	@Ignore // FIX Selenium 3.4 binding adds click to (0,0) actions to the target element to bring it in focus, that is bad and not needed!
 	public void testSendShiftKeyWithTargetActions() throws Exception {
-		WebElement textInputField = BROWSER.findElementById("outputs");
+		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
 		// when
@@ -118,7 +120,7 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testMixedKeyMouseActions() throws Exception {
-		WebElement textInputField = BROWSER.findElementById("outputs");
+		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
 		// when
@@ -128,7 +130,7 @@ public class RoboDriverActionsTest {
 			.sendKeys("hello")
 			.keyUp(Keys.SHIFT)
 			.sendKeys(Keys.RETURN)
-			.moveToElement(screen, CASP.getX() + 100, CASP.getY() + 100)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
 			.click()
 			.perform();
 		
@@ -139,12 +141,12 @@ public class RoboDriverActionsTest {
 	@Test
 	public void testClick() throws Exception {
 		// given
-		WebElement clickInfo = BROWSER.findElementById("outputs");
+		WebElement clickInfo = browser.findElementById("outputs");
 		
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		new Actions(robo)
-			.moveToElement(screen, CASP.getX() + 100, CASP.getY() + 100)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
 			.click()
 			.perform();
 		
@@ -156,14 +158,14 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testDragAndDrop() {
-		WebElement outputs = BROWSER.findElementById("outputs");
+		WebElement outputs = browser.findElementById("outputs");
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		
 		// when
 		WebElement caspCorner = screen.findElement(
-				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 1, CASP.getY() + 1)));
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 1, casp.getY() + 1)));
 		WebElement caspCenter = screen.findElement(
-				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 100, CASP.getY() + 100)));
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 100, casp.getY() + 100)));
 		new Actions(robo)
 			.dragAndDrop(caspCorner, caspCenter)
 			.perform();
@@ -174,12 +176,12 @@ public class RoboDriverActionsTest {
 	
 	@Test
 	public void testDragAndDropByOffset() {
-		WebElement outputs = BROWSER.findElementById("outputs");
+		WebElement outputs = browser.findElementById("outputs");
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		
 		// when
 		WebElement caspCenter = screen.findElement(
-				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", CASP.getX() + 100, CASP.getY() + 100)));
+				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 100, casp.getY() + 100)));
 		new Actions(robo)
 		.dragAndDropBy(caspCenter, 20, 20)
 		.perform();
