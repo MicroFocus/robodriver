@@ -1,10 +1,17 @@
 package io.test.automation.robodriver;
 
+import java.awt.Robot;
+
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+/**
+ * Exposes a Selenium client API of native OS actions for the purposes of test automation, self-running demos, 
+ * and other applications where control of the mouse and keyboard is needed.
+ * This is backed by the Java standard class {@link Robot}, see also its documentation and limitations.
+ */
 public class RoboDriver extends RemoteWebDriver {
 
 	public static final String BROWSER_NAME = "io.test.automation.robodriver";
