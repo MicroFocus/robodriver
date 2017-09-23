@@ -16,4 +16,18 @@
   		<version>3.5.3</version>
   	</dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <includeEmptyDirs>false</includeEmptyDirs>
+          <excludes>
+            <exclude>org/openqa/selenium/remote/server/DriverProvider.*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>  
 </project>

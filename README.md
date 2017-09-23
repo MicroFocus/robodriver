@@ -23,7 +23,7 @@ new Actions(robo)
 ## Drag & Drop
 
 For drag and drop it is needed to provide a source and target element. For those elements a `//rectangle` of a screen
-can be used, for example:
+can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
 ```
 WebElement source = screen.findElement(
@@ -34,4 +34,15 @@ WebElement target = screen.findElement(
 new Actions(robo)
 	.dragAndDrop(source, target)
 	.perform();
+```
+
+## Remote Execution
+
+Extend Selenium server with RoboDriver:
+
+1. Build robodriver.jar using Maven build file pom.xml
+
+1. Start server with robodriver.jar in the classpath, for example: 
+```
+java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.selenium.GridLauncherV3
 ```
