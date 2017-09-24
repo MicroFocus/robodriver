@@ -4,6 +4,6 @@
 <listEntry value="org.eclipse.ui.externaltools.launchGroup"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/robodriver/start_seleniumserver.cmd}"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="&quot;C:/ProgramData/Oracle/Java/javapath/java.exe&quot;&#13;&#10;&quot;C:/drive_D/ST_workspace/deploy/Mobile/Common/SeleniumStandaloneServer/selenium-server-standalone-3.4.0.jar&quot;&#13;&#10;&quot;C:\drive_D\ST_workspace\deploy\WebDrivers\Windows\Gecko\0.16.1\geckodriver.exe&quot;"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/robodriver/target}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="&quot;C:/ProgramData/Oracle/Java/javapath/java.exe&quot;&#13;&#10;&quot;D:\exchange\Selenium\selenium-server-standalone-3.5.3.jar&quot;&#13;&#10;&quot;D:\exchange\Selenium\chromedriver\chromedriver2.32.exe&quot;&#13;&#10;&quot;.\target\classes&quot;&#13;&#10;&quot;C:\Users\geralde\Documents\GitHub\robodriver\target\classes&quot;"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/robodriver}"/>
 </launchConfiguration>
