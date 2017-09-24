@@ -39,8 +39,16 @@ public class TestUtil {
 		return url;
 	}
 
+	/**
+	 * Starts local Chrome for testing.
+	 * @throws IOException
+	 */
 	public RemoteWebDriver startChrome() throws IOException {
 		URL url = startLocalChrome();
+		return startChrome(url);
+	}
+
+	public RemoteWebDriver startChrome(URL url) {
 		return new RemoteWebDriver(url, DesiredCapabilities.chrome());
 	}
 	

@@ -36,6 +36,7 @@ public class RoboDriverProvider implements DriverProvider {
 
 	@Override
 	public WebDriver newInstance(Capabilities capabilities) {
+		LOGGER.info(()->String.format("%s instantiated by server.", RoboDriver.class.getSimpleName()));
 		return new RoboDriver();
 	}
 }

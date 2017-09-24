@@ -38,11 +38,11 @@ new Actions(robo)
 
 ## Remote Execution
 
-Extend Selenium server with RoboDriver:
+Extend Selenium server with driver class `RoboDriver`:
 
-1. Build robodriver.jar using Maven build file pom.xml
+1. Build `robodriver.jar` using Maven build file pom.xml
 
-1. Start server with robodriver.jar in the classpath, for example: 
+1. Start server with `robodriver.jar` in the classpath, for example: 
 ```
 java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.selenium.GridLauncherV3
 ```
