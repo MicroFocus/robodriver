@@ -1,3 +1,5 @@
+- support additonally usage of virtual java keys (see KeyEvent.class)
+
 - extend supported modifier keys
 
 - implement mouse buttons
