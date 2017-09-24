@@ -1,5 +1,3 @@
-- support remote execution
-
 - extend supported modifier keys
 
 - implement mouse buttons

@@ -9,14 +9,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import io.test.automation.robodriver.RoboDriver;
+import io.test.automation.robodriver.RoboDriverUtil;
 import io.test.automation.robodriver.TestUtil;
 
 /**
@@ -29,10 +31,21 @@ public class RoboDriverServerTest {
 
 	private static TestUtil util;
 	private static RemoteWebDriver browser;
+	private static Point casp; // click area screen position of left upper corner
 
 	private static RemoteWebDriver robo;
 
 	private static boolean serverRunning;
+
+	private static boolean aliveCheck(URL remoteAddress) throws IOException {
+		try (Socket s = new Socket()) {
+		  s.connect(new InetSocketAddress(remoteAddress.getHost(), remoteAddress.getPort()));
+		  return true;
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
 
 	@BeforeClass
 	public static void onBeforeClass() throws IOException {
@@ -47,21 +60,27 @@ public class RoboDriverServerTest {
 		util = new TestUtil();
 		browser = util.startChrome(new URL(serverURL));
 		util.navigateToTestPage(browser);
+		WebElement clickArea = browser.findElementById("clickarea");
+		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
 		
 		WebElement testInputOutputField = browser.findElementById("outputs");
 		assertTrue("test io info must be empty", testInputOutputField.getAttribute("value").isEmpty());
 	}
 
-	private static boolean aliveCheck(URL remoteAddress) throws IOException {
-		try (Socket s = new Socket()) {
-		  s.connect(new InetSocketAddress(remoteAddress.getHost(), remoteAddress.getPort()));
-		  return true;
-		}
-		catch (Exception e) {
-			return false;
-		}
+	@Before
+	public void onBeforeTest() throws IOException {
+		util.clearInfoTextField(browser);
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		robo = new RoboDriver(roboCapabilities);
 	}
 
+	@After
+	public void onAfterTest() {
+		if (robo != null) {
+			robo.quit();
+		}
+	}
+	
 	@AfterClass
 	public static void onAfterClass() {
 		if (browser != null) {
@@ -82,7 +101,44 @@ public class RoboDriverServerTest {
 		// then
 		assertEquals("hello", textInputField.getAttribute("value"));
 	}
+	
+	@Test
+	public void testSendShiftKeyActions() throws Exception {
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
 
+		// when
+		new Actions(robo)
+			.keyDown(Keys.SHIFT)
+			.sendKeys("hello")
+			.keyUp(Keys.SHIFT)
+			.perform();
+
+		// then
+		assertEquals("HELLO", textInputField.getAttribute("value"));
+	}
+
+	@Test
+	public void testMixedKeyMouseActions() throws Exception {
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.keyDown(Keys.SHIFT)
+			.sendKeys("hello")
+			.keyUp(Keys.SHIFT)
+			.sendKeys(Keys.RETURN)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
+			.click()
+			.perform();
+		
+		// then
+		assertEquals("HELLO\nmouse move: from (100,100) to (100,100)\nclick pos: 100,100", textInputField.getAttribute("value").trim());
+	}
+	
 	private String getServerNotRunningInfoText() {
 		return format("Ignored, server '%s' not connectable.", serverURL.toString());
 	}	
