@@ -69,6 +69,9 @@ public class RoboDriverServerTest {
 
 	@Before
 	public void onBeforeTest() throws IOException {
+		if (!serverRunning) {
+			return;
+		}		
 		util.clearInfoTextField(browser);
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		robo = new RoboDriver(roboCapabilities);
@@ -121,6 +124,7 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testMixedKeyMouseActions() throws Exception {
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		
