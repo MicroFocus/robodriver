@@ -1,5 +1,6 @@
 package io.test.automation.robodriver;
 
+import static io.test.automation.robodriver.internal.RoboUtil.getVK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -64,7 +65,19 @@ public class RoboDriverActionsTest {
 		
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		screen.sendKeys("hello");
+		screen.sendKeys("hEllo");
+		
+		// then
+		assertEquals("hello", textInputField.getAttribute("value"));
+	}
+	
+	@Test
+	public void testSendKeysWithVirtualKeys() throws Exception {
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		screen.sendKeys(getVK("VK_H"), getVK("VK_E"), getVK("VK_L"), getVK("VK_L"), getVK("VK_O"));
 		
 		// then
 		assertEquals("hello", textInputField.getAttribute("value"));

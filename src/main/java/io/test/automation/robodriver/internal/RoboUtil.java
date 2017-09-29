@@ -1,12 +1,12 @@
 package io.test.automation.robodriver.internal;
 
-
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +26,10 @@ public class RoboUtil {
 	private static Map<String, Robot> robots = new HashMap<>();
 
 	private static Map<Character, Integer> webDriverKeyToOsKeyMap = new HashMap<>();
+
+	private static Map<String, Integer> virtualKeyNameToKeyCodeMap = new HashMap<>();
 	
-	static {
+	static { // TODO use instance no statics
 		webDriverKeyToOsKeyMap.put(Keys.NULL.charAt(0), 0);
 		webDriverKeyToOsKeyMap.put(Keys.RETURN.charAt(0), KeyEvent.VK_ENTER);
 		webDriverKeyToOsKeyMap.put(Keys.ZENKAKU_HANKAKU.charAt(0), KeyEvent.VK_FULL_WIDTH);
@@ -51,6 +53,17 @@ public class RoboUtil {
 				} catch (Exception e) {
 					e.printStackTrace();
 					LOGGER.log(Level.SEVERE, "key mapping error in static initializer of RoboUtil", e);
+				}
+			}
+		}
+		Field[] keyEventFields = KeyEvent.class.getFields();
+		for (Field f : keyEventFields) {
+			if (f.getName().startsWith("VK_")) {
+				try {
+					Integer vkValue = (Integer) f.get(null);
+					virtualKeyNameToKeyCodeMap.put(f.getName(), vkValue);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
@@ -234,18 +247,51 @@ public class RoboUtil {
 	}
 
 	static Integer getVirtualKeyCode(Character c) {
-		int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
+		Integer keyCode = webDriverKeyToOsKeyMap.get(c);
+		if (keyCode != null) {
+			return keyCode;
+		}
+		keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
 		if (keyCode != KeyEvent.VK_UNDEFINED) {
 			return keyCode;
 		} else {
-			return webDriverKeyToOsKeyMap.get(c);
+			return Character.getNumericValue(c);
 		}
 	}
 	
+	public static CharSequence getVK(String virtualKeyName) {
+		Integer vk = virtualKeyNameToKeyCodeMap .get(virtualKeyName);
+		if (vk == null) {
+			throw new RuntimeException(String.format("virtual key name '%s' not found", virtualKeyName));
+		}
+		return new Character((char)vk.intValue()).toString();
+	}
+
 	public static void main(String[] args) {
 		showScreenDevices();
 		clacVirtualBounds();
 		clacDefaultVirtualBounds();
+		
+		/*
+		 * The range of legal code points is now U+0000 to U+10FFFF, known as Unicode scalar value. 
+		 * (Refer to the  definition of the U+n notation in the Unicode Standard.) 
+		 * The set of characters from U+0000 to U+FFFF is sometimes referred to as the 
+		 * Basic Multilingual Plane (BMP). Characters whose code points are greater than U+FFFF 
+		 * are called supplementary characters. The Java platform uses the UTF-16 representation 
+		 * in char arrays and in the String and StringBuffer classes. 
+		 * In this representation, supplementary characters are represented as a pair of char values, 
+		 * the first from the high-surrogates range, (\uD800-\uDBFF), 
+		 * the second from the low-surrogates range (\uDC00-\uDFFF). 
+		 * A char value, therefore, represents Basic Multilingual Plane (BMP) code points, 
+		 * including the surrogate code points, or code units of the UTF-16 encoding. 
+		 * An int value represents all Unicode code points, including supplementary code points. 
+		 * The lower (least significant) 21 bits of int are used to represent Unicode code points 
+		 * and the upper (most significant) 11 bits must be zero. Unless otherwise specified, 
+		 * the behavior with respect to supplementary characters and surrogate char values is as follows:
+		 * ...
+		 * http.//www.unicode.org/glossary 
+		 */
+		char shiftChar = Keys.SHIFT.charAt(0);
 	}
 
 }
