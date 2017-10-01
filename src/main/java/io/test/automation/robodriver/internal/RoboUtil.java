@@ -187,6 +187,14 @@ public class RoboUtil {
 		}
 	}
 
+	public static void sendKeys(Robot robot, String string) {
+		sendKeys(robot, new CharSequence[] { string } );
+	}
+
+	public static void sendKeys(Robot robot, CharSequence virtualKey) {
+		sendKeys(robot, new CharSequence[] { virtualKey } );
+	}
+
 	public static Robot getRobot(GraphicsDevice device) {
 		if (robots.containsKey(device.getIDstring())) {
 			return robots.get(device.getIDstring());
@@ -255,12 +263,17 @@ public class RoboUtil {
 		if (keyCode != KeyEvent.VK_UNDEFINED) {
 			return keyCode;
 		} else {
-			return Character.getNumericValue(c);
+			return (int)c.charValue();
 		}
 	}
 	
+	/**
+	 * Retrieves Java virtual key character by name.
+	 * @param virtualKeyName valid names are VK_XXX constants from {@link KeyEvent}.
+	 * @return virtual key character that can be used with webdriver sendKeys() methods. 
+	 */
 	public static CharSequence getVK(String virtualKeyName) {
-		Integer vk = virtualKeyNameToKeyCodeMap .get(virtualKeyName);
+		Integer vk = virtualKeyNameToKeyCodeMap.get(virtualKeyName);
 		if (vk == null) {
 			throw new RuntimeException(String.format("virtual key name '%s' not found", virtualKeyName));
 		}
