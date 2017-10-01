@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,9 @@ public class RoboUtil {
 	private static Map<Character, Integer> webDriverKeyToOsKeyMap = new HashMap<>();
 
 	private static Map<String, Integer> virtualKeyNameToKeyCodeMap = new HashMap<>();
-	
+
+	private static Map<Integer, String> virtualKeyCodeToNameCodeMap = new HashMap<>();
+
 	static { // TODO use instance no statics
 		webDriverKeyToOsKeyMap.put(Keys.NULL.charAt(0), 0);
 		webDriverKeyToOsKeyMap.put(Keys.RETURN.charAt(0), KeyEvent.VK_ENTER);
@@ -62,6 +65,7 @@ public class RoboUtil {
 				try {
 					Integer vkValue = (Integer) f.get(null);
 					virtualKeyNameToKeyCodeMap.put(f.getName(), vkValue);
+					virtualKeyCodeToNameCodeMap.put(vkValue, f.getName());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -267,6 +271,20 @@ public class RoboUtil {
 		}
 	}
 	
+	public static List<String> getVirtualKeyNames() {
+		List<String> names = new ArrayList<>(virtualKeyNameToKeyCodeMap.keySet());
+		Collections.sort(names);
+		return names;
+	}
+
+	public static String getVirtualKeyName(int extKeyCode) {
+		String vkName = virtualKeyCodeToNameCodeMap.get(extKeyCode);
+		if (vkName == null) {
+			return String.format("Unknown VK name for %h", extKeyCode);
+		}
+		return vkName;
+	}
+
 	/**
 	 * Retrieves Java virtual key character by name.
 	 * @param virtualKeyName valid names are VK_XXX constants from {@link KeyEvent}.

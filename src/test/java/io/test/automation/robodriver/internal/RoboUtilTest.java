@@ -45,7 +45,6 @@ public class RoboUtilTest {
 		assertEquals((Integer)KeyEvent.VK_A, RoboUtil.getVirtualKeyCode('A'));
 		
 		Integer keyCode = RoboUtil.getVirtualKeyCode('@');
-		System.out.println(Integer.toBinaryString(keyCode));
 		assertEquals((Integer)KeyEvent.VK_AT, keyCode);
 	}
 	
