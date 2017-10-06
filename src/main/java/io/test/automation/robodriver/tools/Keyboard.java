@@ -52,19 +52,19 @@ public class Keyboard {
 				List<String> virtualKeyNames = RoboUtil.getVirtualKeyNames();
 				for (String keyName : virtualKeyNames) {
 					String keyInfo = "";
-					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVK("VK_SPACE"));
+					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq("VK_SPACE"));
 					try {
 						keyListener.startRecordNextEvent();
 						System.out.println("type key: " + keyName);
-						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVK(keyName));
+						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq(keyName));
 						keyInfo = getKeyInfo();
-						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVK(keyName));
+						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq(keyName));
 					} catch (Exception e) {
 						e.printStackTrace();
 						keyListener.cancelRecordNextEvent();
 						keyInfo = String.format("ERROR send key '%s': %s", keyName, e.getMessage());
 					}
-					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVK("VK_SPACE"));
+					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq("VK_SPACE"));
 					printlnMessage();
 					printlnMessage(keyInfo);			
 					printlnMessage();

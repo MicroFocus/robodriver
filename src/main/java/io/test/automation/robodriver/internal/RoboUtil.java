@@ -177,8 +177,18 @@ public class RoboUtil {
 
 	public static void sendKeys(Robot robot, CharSequence[] keysToSend) {
 		for (CharSequence charSeq : keysToSend) {
-			for (int i = 0; i < charSeq.length(); i++) {
-				char c = charSeq.charAt(i);
+			CharSequence charSeqToProcess; 
+			if ((charSeqToProcess = getVirtualKeyCharSeq(charSeq.toString())) == null) {
+				charSeqToProcess = charSeq;
+			}
+			sendKeysOfCharSeq(robot, charSeqToProcess);
+		}
+	}
+
+	private static void sendKeysOfCharSeq(Robot robot, CharSequence charSeqToProcess) {
+		for (int i = 0; i < charSeqToProcess.length(); i++) {
+			char c = charSeqToProcess.charAt(i);
+			try {
 				Integer keyCode = getVirtualKeyCode(c);
 				if (keyCode != null) {
 					robot.keyPress(keyCode);
@@ -187,6 +197,9 @@ public class RoboUtil {
 					LOGGER.log(Level.INFO, ()->String.format("sendKeys: no key code found for character, numeric/type = %d/%d", 
 							Character.getNumericValue(c), Character.getType(c)));
 				}
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, ()->String.format("send key '%c' (%h) failed: " + e.getMessage(), c, (int)c));
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -195,8 +208,8 @@ public class RoboUtil {
 		sendKeys(robot, new CharSequence[] { string } );
 	}
 
-	public static void sendKeys(Robot robot, CharSequence virtualKey) {
-		sendKeys(robot, new CharSequence[] { virtualKey } );
+	public static void sendKeys(Robot robot, CharSequence charSeq) {
+		sendKeys(robot, new CharSequence[] { charSeq } );
 	}
 
 	public static Robot getRobot(GraphicsDevice device) {
@@ -288,12 +301,12 @@ public class RoboUtil {
 	/**
 	 * Retrieves Java virtual key character by name.
 	 * @param virtualKeyName valid names are VK_XXX constants from {@link KeyEvent}.
-	 * @return virtual key character that can be used with webdriver sendKeys() methods. 
+	 * @return virtual key character that can be used with webdriver sendKeys() methods, or null if not found VK
 	 */
-	public static CharSequence getVK(String virtualKeyName) {
+	public static CharSequence getVirtualKeyCharSeq(String virtualKeyName) {
 		Integer vk = virtualKeyNameToKeyCodeMap.get(virtualKeyName);
 		if (vk == null) {
-			throw new RuntimeException(String.format("virtual key name '%s' not found", virtualKeyName));
+			return null;
 		}
 		return new Character((char)vk.intValue()).toString();
 	}

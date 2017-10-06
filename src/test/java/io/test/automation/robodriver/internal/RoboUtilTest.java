@@ -52,16 +52,16 @@ public class RoboUtilTest {
 	public void testGetVirtualKeyCharByName() {
 		int ki = KeyEvent.VK_DEAD_ACUTE;
 		char kc = (char)ki;
-		CharSequence vk = RoboUtil.getVK("VK_DEAD_ACUTE");
+		CharSequence vk = RoboUtil.getVirtualKeyCharSeq("VK_DEAD_ACUTE");
 		assertEquals(""+kc, vk);
 		assertEquals(kc, vk.charAt(0));
 		assertEquals((Integer)ki, RoboUtil.getVirtualKeyCode(kc));
 		
-		assertEquals("H", RoboUtil.getVK("VK_H"));
-		assertEquals("E", RoboUtil.getVK("VK_E"));
-		assertEquals("L", RoboUtil.getVK("VK_L"));
-		assertEquals("L", RoboUtil.getVK("VK_L"));
-		assertEquals("O", RoboUtil.getVK("VK_O"));
+		assertEquals("H", RoboUtil.getVirtualKeyCharSeq("VK_H"));
+		assertEquals("E", RoboUtil.getVirtualKeyCharSeq("VK_E"));
+		assertEquals("L", RoboUtil.getVirtualKeyCharSeq("VK_L"));
+		assertEquals("L", RoboUtil.getVirtualKeyCharSeq("VK_L"));
+		assertEquals("O", RoboUtil.getVirtualKeyCharSeq("VK_O"));
 	}
 }
 
