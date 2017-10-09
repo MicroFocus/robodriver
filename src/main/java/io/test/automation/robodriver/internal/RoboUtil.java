@@ -26,33 +26,35 @@ public class RoboUtil {
 	
 	private static Map<String, Robot> robots = new HashMap<>();
 
-	private static Map<Character, Integer> webDriverKeyToOsKeyMap = new HashMap<>();
+	private static Map<Character, Integer> webDriverKeyToVirtualKeyMap = new HashMap<>();
+	
+	private static Map<Integer, Character> virtualKeyToWebDriverKeyMap = new HashMap<>();
 
 	private static Map<String, Integer> virtualKeyNameToKeyCodeMap = new HashMap<>();
 
 	private static Map<Integer, String> virtualKeyCodeToNameCodeMap = new HashMap<>();
 
 	static { // TODO use instance no statics
-		webDriverKeyToOsKeyMap.put(Keys.NULL.charAt(0), 0);
-		webDriverKeyToOsKeyMap.put(Keys.RETURN.charAt(0), KeyEvent.VK_ENTER);
-		webDriverKeyToOsKeyMap.put(Keys.ZENKAKU_HANKAKU.charAt(0), KeyEvent.VK_FULL_WIDTH);
+		addWebDriverKeyToMaps(Keys.NULL, KeyEvent.VK_UNDEFINED);
+		addWebDriverKeyToMaps(Keys.RETURN, KeyEvent.VK_ENTER);
+		addWebDriverKeyToMaps(Keys.ZENKAKU_HANKAKU, KeyEvent.VK_FULL_WIDTH);
 		
 		String osName = System.getProperty("os.name", "").toLowerCase();
 		if (osName.contains("mac")) {
-			webDriverKeyToOsKeyMap.put(Keys.META.charAt(0), KeyEvent.VK_META);
-			webDriverKeyToOsKeyMap.put(Keys.COMMAND.charAt(0), KeyEvent.VK_META);
+			addWebDriverKeyToMaps(Keys.META, KeyEvent.VK_META);
+			addWebDriverKeyToMaps(Keys.COMMAND, KeyEvent.VK_META);
 		} else {
-			webDriverKeyToOsKeyMap.put(Keys.META.charAt(0), KeyEvent.VK_WINDOWS);
-			webDriverKeyToOsKeyMap.put(Keys.COMMAND.charAt(0), KeyEvent.VK_WINDOWS);
+			addWebDriverKeyToMaps(Keys.META, KeyEvent.VK_WINDOWS);
+			addWebDriverKeyToMaps(Keys.COMMAND, KeyEvent.VK_WINDOWS);
 		}
 		
 		for (Keys k: Keys.values()) {
-			if (! webDriverKeyToOsKeyMap.containsKey(k.charAt(0))) {
+			if (! webDriverKeyToVirtualKeyMap.containsKey(k.charAt(0))) {
 				try {
 					Integer keyEvent = (Integer) KeyEvent.class.getField("VK_" +  k.name()).get(null);
 					if (keyEvent == null)
 						System.out.println(k.name());
-					webDriverKeyToOsKeyMap.put(k.charAt(0), keyEvent);
+					addWebDriverKeyToMaps(k, keyEvent);
 				} catch (Exception e) {
 					e.printStackTrace();
 					LOGGER.log(Level.SEVERE, "key mapping error in static initializer of RoboUtil", e);
@@ -71,6 +73,11 @@ public class RoboUtil {
 				}
 			}
 		}
+	}
+	
+	public static void addWebDriverKeyToMaps(Keys webDriverKey, Integer virtualKey) {
+		webDriverKeyToVirtualKeyMap.put(webDriverKey.charAt(0), virtualKey);
+		virtualKeyToWebDriverKeyMap.put(virtualKey, webDriverKey.charAt(0));
 	}
 
 	public static void showScreenDevices() {
@@ -270,9 +277,9 @@ public class RoboUtil {
 					Character.getNumericValue(c), Character.getType(c)));
 		}
 	}
-
+	
 	static Integer getVirtualKeyCode(Character c) {
-		Integer keyCode = webDriverKeyToOsKeyMap.get(c);
+		Integer keyCode = webDriverKeyToVirtualKeyMap.get(c);
 		if (keyCode != null) {
 			return keyCode;
 		}
@@ -282,6 +289,15 @@ public class RoboUtil {
 		} else {
 			return (int)c.charValue();
 		}
+	}
+
+	public static String getWebDriverKeyName(int virtualKeyCode) {
+		Character webDriverKeyUnicode = virtualKeyToWebDriverKeyMap.get(virtualKeyCode);
+		if (webDriverKeyUnicode == null) {
+			return "<NO VK>"; 
+		}
+		Keys keyFromUnicode = Keys.getKeyFromUnicode(webDriverKeyUnicode);
+		return (keyFromUnicode == null ? "<NO NAME>" : keyFromUnicode.name());
 	}
 	
 	public static List<String> getVirtualKeyNames() {

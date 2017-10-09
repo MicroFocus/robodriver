@@ -20,8 +20,11 @@ public class KeyListenerExt implements KeyListener {
 		char keyChar = e.getKeyChar();
 		String keyText = KeyEvent.getKeyText(e.getKeyCode());
 		extKeyCode = e.getExtendedKeyCode();
-		infoText = String.format("VK-identifier: %-27s (key=%s, char='%c', ext-code=0x%h)", RoboUtil.getVirtualKeyName(extKeyCode), 
-				keyText, keyChar, extKeyCode);
+		infoText = String.format("Keys.%-15s %-30s (key=%s, char='%c', ext-code=0x%h)", 
+				RoboUtil.getWebDriverKeyName(extKeyCode), 
+				RoboUtil.getVirtualKeyName(extKeyCode),
+				keyText, keyChar, extKeyCode)
+				;
 		recordNextEvent = false;
 		
 		System.out.println(infoText);
