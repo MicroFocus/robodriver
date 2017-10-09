@@ -25,6 +25,7 @@ public class RoboDriverProvider implements DriverProvider {
 	}
 
 	@Override
+	@Deprecated
 	public boolean canCreateDriverInstances() {
 		return true;
 	}

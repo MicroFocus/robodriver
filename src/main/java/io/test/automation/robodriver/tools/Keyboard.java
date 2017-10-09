@@ -15,7 +15,6 @@ public class Keyboard {
 	private static KeyListenerExt keyListener = new KeyListenerExt();
 
 	public static void main(String[] args) {
-		System.out.println(getToolUsageInfo());
 		prepareGUI();
 		printlnMessage("Initializing...");
 		printlnMessage("");

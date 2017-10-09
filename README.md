@@ -1,4 +1,5 @@
 # robodriver
+
 A WebDriver API to generate native system input events for the purposes of test automation, either locally or on a remote machine.
 
 The `RemoteWebDriver` interface can be used to find screen devices and to implement mouse and keyboard actions:
@@ -36,11 +37,38 @@ new Actions(robo)
 	.perform();
 ```
 
+## Build
+
+Easiest way to build robodriver.jar is using Maven and build file `pom.xml`, install Maven from 
+[Apache Maven Project](https://maven.apache.org/)
+
+1. Clone the project.
+
+1. Open a shell window in the folder, usually: `../robodriver`.
+
+1. Extend the environment search path to find chromedriver, it is needed for test runs .
+
+1. Build and run tests with maven command `mvn install`, to skip the test runs you can use `mvn install -DskipTests`.
+
+1. See .jar file in output folder `./target`.
+
+## Tools
+
+The utility `Keyboard` opens a window that logs Selenium key codes and also system dependent virtual key codes 
+for the current keyboard in use. 
+To start this tool use maven to build robodriver and run `mvn exec:java` from the command line. 
+The implementation can be found in class `io.test.automation.robodriver.tools.Keyboard`. 
+
 ## Remote Execution
 
-Extend Selenium server with driver class `RoboDriver`:
+Selenium server can be extended to use robodriver to drive applications on a remote machine.
+On server startup the `robodriver.jar` will be loaded by the 
+dynamic webdriver loading feature of the Selenium server. 
+See also the webdriver provider file `META-INF/services/org.openqa.selenium.remote.server.DriverProvider`  
 
-1. Build `robodriver.jar` using Maven build file pom.xml
+1. Download Selenium Standalone Server from the [Selenium Project](http://www.seleniumhq.org/download/)
+
+1. Build `robodriver.jar` using Maven build file `pom.xml`, see above.
 
 1. Start server with `robodriver.jar` in the classpath, for example: 
 ```

@@ -1,4 +1,8 @@
-- support additonally usage of virtual java keys (see KeyEvent.class)
+- test/document usage with Selnium grid nodes
+
+- determine virtual key names for keys of remote keyboard layout and propagate back with Capabilities.
+	  
+- implement recorder to generate Actions expression for key strokes
 
 - extend supported modifier keys
 
@@ -7,3 +11,5 @@
 - implement screenshot for screens and rectangles
 
 - expose wait-for-idle delay in milliseconds as a capability
+
+- document usage with other languages: python, JS, ...

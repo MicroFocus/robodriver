@@ -25,7 +25,7 @@ public class TestUtil {
 	public RemoteWebDriver startFirefox() throws IOException {
 		//System.setProperty(FirefoxDriver.SystemProperty.BROWSER_BINARY, "C:\\Program Files (x86)\\Mozilla Firefox_50\\firefox.exe");
 		URL url = startLocalFirefox();
-		return new RemoteWebDriver(url, (new FirefoxOptions().toCapabilities()));
+		return new RemoteWebDriver(url, DesiredCapabilities.firefox());
 	}
 	
 	private URL startLocalFirefox() throws IOException {
