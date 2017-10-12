@@ -13,6 +13,7 @@ public class Keyboard {
 	private static Panel controlPanel;
 	private static TextArea mainTextOutput;
 	private static KeyListenerExt keyListener = new KeyListenerExt();
+	private static RoboUtil roboUtil = new RoboUtil();
 
 	public static void main(String[] args) {
 		prepareGUI();
@@ -47,23 +48,23 @@ public class Keyboard {
 			@Override
 			public void run() {
 				pause(3000);
-				RoboUtil.getDefaultRobot().setAutoDelay(350);
-				List<String> virtualKeyNames = RoboUtil.getVirtualKeyNames();
+				roboUtil.getDefaultRobot().setAutoDelay(350);
+				List<String> virtualKeyNames = roboUtil.getVirtualKeyNames();
 				for (String keyName : virtualKeyNames) {
 					String keyInfo = "";
-					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq("VK_SPACE"));
+					roboUtil.sendKeys(roboUtil.getDefaultRobot(), roboUtil.getVirtualKeyCharSeq("VK_SPACE"));
 					try {
 						keyListener.startRecordNextEvent();
 						System.out.println("type key: " + keyName);
-						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq(keyName));
+						roboUtil.sendKeys(roboUtil.getDefaultRobot(), roboUtil.getVirtualKeyCharSeq(keyName));
 						keyInfo = getKeyInfo();
-						RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq(keyName));
+						roboUtil.sendKeys(roboUtil.getDefaultRobot(), roboUtil.getVirtualKeyCharSeq(keyName));
 					} catch (Exception e) {
 						e.printStackTrace();
 						keyListener.cancelRecordNextEvent();
 						keyInfo = String.format("ERROR send key '%s': %s", keyName, e.getMessage());
 					}
-					RoboUtil.sendKeys(RoboUtil.getDefaultRobot(), RoboUtil.getVirtualKeyCharSeq("VK_SPACE"));
+					roboUtil.sendKeys(roboUtil.getDefaultRobot(), roboUtil.getVirtualKeyCharSeq("VK_SPACE"));
 					printlnMessage();
 					printlnMessage(keyInfo);			
 					printlnMessage();

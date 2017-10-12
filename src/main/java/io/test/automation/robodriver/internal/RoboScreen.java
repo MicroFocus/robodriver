@@ -24,6 +24,7 @@ public class RoboScreen extends RemoteWebElement {
 	private java.awt.Rectangle bounds;
 	private Rectangle rect;
 	private Dimension size;
+	private RoboUtil roboUtil = new RoboUtil();
 	
 
 	private RoboScreen(GraphicsDevice device) {
@@ -35,7 +36,7 @@ public class RoboScreen extends RemoteWebElement {
 
 	@Override
 	public void click() {
-		Robot robot = RoboUtil.getRobot(device);
+		Robot robot = roboUtil.getRobot(device);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
@@ -43,8 +44,8 @@ public class RoboScreen extends RemoteWebElement {
 	@Override
 	public void sendKeys(CharSequence... keysToSend) {
 		LOGGER.log(Level.FINE, ()->String.format("send keys '%s', device=%s", charSequenceToString(keysToSend), device)); 
-		Robot robot = RoboUtil.getRobot(device);
-		RoboUtil.sendKeys(robot, keysToSend);
+		Robot robot = roboUtil.getRobot(device);
+		roboUtil.sendKeys(robot, keysToSend);
 	}
 
 	@Override
@@ -167,11 +168,11 @@ public class RoboScreen extends RemoteWebElement {
 	}
 	
 	public static RoboScreen getDefaultScreen(RemoteWebDriver driver) {
-		return getInstance(RoboUtil.getDefaultDevice(), driver);
+		return getInstance(new RoboUtil().getDefaultDevice(), driver);
 	}
 
 	public static List<RoboScreen> getAllScreens(RemoteWebDriver driver) {
-		return RoboUtil.getAllScreens(driver);
+		return new RoboUtil().getAllScreens(driver);
 	}
 
 	/**
@@ -179,7 +180,7 @@ public class RoboScreen extends RemoteWebElement {
 	 * @return screen
 	 */
 	public static RoboScreen getScreen(int index, RemoteWebDriver driver) {
-		return getInstance(RoboUtil.getDeviceByIndex(index), driver);
+		return getInstance(new RoboUtil().getDeviceByIndex(index), driver);
 	}
 
 	public static RoboScreen getScreenById(String id) {

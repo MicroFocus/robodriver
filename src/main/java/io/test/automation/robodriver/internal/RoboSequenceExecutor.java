@@ -18,6 +18,7 @@ public class RoboSequenceExecutor extends Thread {
 	private Object tickLock = new Object();
 	private boolean allTicksCompleted;
 	private boolean nextTickCompleted;
+	private RoboUtil roboUtil = new RoboUtil();
 
 	public RoboSequenceExecutor(Sequence seq) {
 		super("robo-sequence-" + seq.hashCode());
@@ -92,7 +93,7 @@ public class RoboSequenceExecutor extends Thread {
 					final Object targetObject = actionDetails.get("origin");
 					if (targetObject == null) {
 						LOGGER.log(Level.FINEST, ()->String.format("[%s] no screen device defined, using default screen.", seqType));
-						device = RoboUtil.getDefaultDevice();
+						device = roboUtil.getDefaultDevice();
 					} else if (targetObject instanceof RoboScreen) {
 						device = ((RoboScreen) targetObject).getDevice();
 					} else if (targetObject instanceof RoboScreenRectangle) {
@@ -115,13 +116,13 @@ public class RoboSequenceExecutor extends Thread {
 						Long tickDuration = (Long) actionDetails.get("duration");
 						Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
 						Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
-						RoboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
+						roboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
-						RoboUtil.mouseDown(device);
+						roboUtil.mouseDown(device);
 						break;
 					case "pointerUp":
-						RoboUtil.mouseUp(device);
+						roboUtil.mouseUp(device);
 						break;
 						// key actions
 					case "pause":
@@ -129,11 +130,11 @@ public class RoboSequenceExecutor extends Thread {
 						break;
 					case "keyDown":
 						String value = (String) actionDetails.get("value");
-						RoboUtil.keyDown(device, value.charAt(0));
+						roboUtil.keyDown(device, value.charAt(0));
 						break;
 					case "keyUp":
 						value = (String) actionDetails.get("value");
-						RoboUtil.keyUp(device, value.charAt(0));
+						roboUtil.keyUp(device, value.charAt(0));
 						break;
 					default:
 						LOGGER.log(Level.FINE, () -> {

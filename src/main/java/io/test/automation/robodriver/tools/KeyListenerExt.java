@@ -9,7 +9,8 @@ public class KeyListenerExt implements KeyListener {
 	private String infoText;
 	private int extKeyCode;
 	private boolean recordNextEvent;
-
+	private RoboUtil roboUtil = new RoboUtil();
+	
 	@Override
 	public void keyTyped(KeyEvent e) {
 		System.out.println("keyTyped:    " + e.toString());
@@ -21,8 +22,8 @@ public class KeyListenerExt implements KeyListener {
 		String keyText = KeyEvent.getKeyText(e.getKeyCode());
 		extKeyCode = e.getExtendedKeyCode();
 		infoText = String.format("Keys.%-15s %-30s (key=%s, char='%c', ext-code=0x%h)", 
-				RoboUtil.getWebDriverKeyName(extKeyCode), 
-				RoboUtil.getVirtualKeyName(extKeyCode),
+				roboUtil.getWebDriverKeyName(extKeyCode), 
+				roboUtil.getVirtualKeyName(extKeyCode),
 				keyText, keyChar, extKeyCode)
 				;
 		recordNextEvent = false;

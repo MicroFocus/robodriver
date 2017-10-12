@@ -29,9 +29,15 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	private Pattern xpathWithIndex = Pattern.compile("/*screen\\[(\\d+)\\]");
 
 	private RoboDriver driver;
+
+	private RoboUtil roboUtil;
 			
 	public void setDriver(RoboDriver driver) {
 		this.driver = driver;
+	}
+	
+	public RoboDriverCommandExecutor() {
+		roboUtil = new RoboUtil();
 	}
 	
 	// TODO use XPath API instead of simple parsing
@@ -40,22 +46,22 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
 		Response response = new Response();
 		if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
-			GraphicsDevice device = RoboUtil.getDefaultDevice(); // TODO use active screen
-			Robot robot = RoboUtil.getRobot(device);
+			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
+			Robot robot = roboUtil.getRobot(device);
 			CharSequence[] keysToSend = (CharSequence[]) command.getParameters().get("value");
-			RoboUtil.sendKeys(robot, keysToSend);
+			roboUtil.sendKeys(robot, keysToSend);
 		} else if (DriverCommand.MOUSE_UP.equals(command.getName())) {
 			GraphicsDevice device = getDevice(command.getParameters());
-			RoboUtil.mouseUp(device);
+			roboUtil.mouseUp(device);
 		} else if (DriverCommand.MOUSE_DOWN.equals(command.getName())) {
 			GraphicsDevice device = getDevice(command.getParameters());
-			RoboUtil.mouseDown(device);
+			roboUtil.mouseDown(device);
 		} else if (DriverCommand.MOVE_TO.equals(command.getName())) {
 			Map<String, ?> parameters = command.getParameters();
 			if (parameters.containsKey("element")) {
 				String deviceId = (String) parameters.get("element");
-				GraphicsDevice device = RoboUtil.getDeviceById(deviceId);
-				Robot robot = RoboUtil.getRobot(device);
+				GraphicsDevice device = roboUtil.getDeviceById(deviceId);
+				Robot robot = roboUtil.getRobot(device);
 				if (parameters.containsKey("xoffset")) {
 					int xoffset =  new BigDecimal((Long)parameters.get("xoffset")).intValueExact();
 					int yoffset = new BigDecimal((Long)parameters.get("yoffset")).intValueExact();
@@ -66,7 +72,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 					robot.mouseMove((int) bounds.getCenterX(), (int) bounds.getCenterY());
 				}
 			} else if (parameters.containsKey("xoffset")) {
-				Robot robot = RoboUtil.getRobot(RoboUtil.getDefaultDevice());
+				Robot robot = roboUtil.getRobot(roboUtil.getDefaultDevice());
 				Point location = MouseInfo.getPointerInfo().getLocation();
 				Long xoffset = (Long) parameters.get("xoffset");
 				Long yoffset = (Long) parameters.get("yoffset");
@@ -138,9 +144,9 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 
 	private GraphicsDevice getDevice(Map<String, ?> parameters) {
 		if (parameters.containsKey("element")) {
-			return RoboUtil.getDeviceById((String)parameters.get("element"));
+			return roboUtil.getDeviceById((String)parameters.get("element"));
 		} else {
-			return RoboUtil.getDefaultDevice();
+			return roboUtil.getDefaultDevice();
 		}
 	}
 
