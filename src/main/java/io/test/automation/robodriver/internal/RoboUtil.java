@@ -34,7 +34,12 @@ public class RoboUtil {
 
 	private static Map<Integer, String> virtualKeyCodeToNameCodeMap = new HashMap<>();
 
-	static { // TODO use instance no statics
+	private static boolean isInitializedKeyMappingsDone;
+
+	private synchronized static void initializeKeyMappings() { 
+		if (isInitializedKeyMappingsDone) {
+			return;
+		}
 		addWebDriverKeyToMaps(Keys.NULL, KeyEvent.VK_UNDEFINED);
 		addWebDriverKeyToMaps(Keys.RETURN, KeyEvent.VK_ENTER);
 		addWebDriverKeyToMaps(Keys.ZENKAKU_HANKAKU, KeyEvent.VK_FULL_WIDTH);
@@ -73,6 +78,14 @@ public class RoboUtil {
 				}
 			}
 		}
+		isInitializedKeyMappingsDone = true;
+	}
+	
+	public RoboUtil() {
+		if (!isInitializedKeyMappingsDone) {
+			initializeKeyMappings();
+		}
+		assert isInitializedKeyMappingsDone;
 	}
 	
 	private static void addWebDriverKeyToMaps(Keys webDriverKey, Integer virtualKey) {
