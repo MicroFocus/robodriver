@@ -4,7 +4,7 @@ A WebDriver API to generate native system input events for the purposes of test 
 
 The `RemoteWebDriver` interface can be used to find screen devices and to implement mouse and keyboard actions:
 
-```
+```java
 DesiredCapabilities roboCapabilities = new DesiredCapabilities("robodriver", null, Platform.ANY);
 RemoteWebDriver robo = new RemoteWebDriver(roboCapabilities);
 
@@ -26,7 +26,10 @@ new Actions(robo)
 For drag and drop it is needed to provide a source and target element. For those elements a `//rectangle` of a screen
 can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
-```
+> The origin of **robodriver** elements like screens and rectangles is at the top left! 
+> This is different to the Selenium W3C Actions, where origin of a **Browser** WebElement is the center of the element.
+
+```java
 WebElement source = screen.findElement(
 	By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", xFrom, yFrom)));
 WebElement target = screen.findElement(

@@ -34,7 +34,7 @@ public class RoboUtil {
 
 	private static Map<Integer, String> virtualKeyCodeToNameCodeMap = new HashMap<>();
 
-	private static boolean isInitializedKeyMappingsDone;
+	private static volatile boolean isInitializedKeyMappingsDone;
 
 	private synchronized static void initializeKeyMappings() { 
 		if (isInitializedKeyMappingsDone) {
