@@ -3,11 +3,8 @@ package io.test.automation.robodriver;
 import java.awt.*;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -15,10 +12,7 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.interactions.Sequence;
-import org.openqa.selenium.remote.Command;
-import org.openqa.selenium.remote.CommandExecutor;
-import org.openqa.selenium.remote.DriverCommand;
-import org.openqa.selenium.remote.Response;
+import org.openqa.selenium.remote.*;
 
 import io.test.automation.robodriver.internal.*;
 
@@ -132,8 +126,16 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				throw new RuntimeException("no dimension attribute defining x,y,widht,height found, example '//rectangle[@dim='70,80,100,200']'");
 			}
 		} else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
-			response.setValue(new HashMap<>());
-			response.setSessionId(Long.toString(System.currentTimeMillis()));
+			String sessionId = UUID.randomUUID().toString();
+			HashMap<String, Object> values = new HashMap<>();
+			HashMap<String, Object> capabs = new HashMap<>();
+			values.put("state", "success");
+			values.put("sessionId", sessionId);
+			values.put("capabilities", capabs);
+			capabs.put("robo:screenCount", (new RoboUtil()).getGraphicsDevices().length);
+		    response.setState("success");
+		    response.setStatus(ErrorCodes.SUCCESS);
+		    response.setValue(values);
 		} else if (DriverCommand.ACTIONS.equals(command.getName())) {
 			handleActionsW3C_Selenium_3_4(command);
 		} else {
@@ -185,10 +187,13 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		} while (!completedAllTicks);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void startSequenceExecutors(Collection<?> actions, List<RoboSequenceExecutor> sequences) {
 		for (Object action : actions) {
-			if (action instanceof Sequence) {
-				sequences.add(new RoboSequenceExecutor((Sequence)action));
+			if (action instanceof Map) {
+				sequences.add(new RoboSequenceExecutor((Map<String, Object>) action));
+			} else if (action instanceof Sequence) {
+				sequences.add(new RoboSequenceExecutor((Sequence) action));
 			} else {
 				LOGGER.log(Level.SEVERE, ()->String.format("unknown action: %s", action));
 			}
@@ -197,5 +202,4 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			roboSequence.start();
 		}
 	}
-
 }

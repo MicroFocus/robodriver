@@ -39,6 +39,10 @@ public class TestUtil {
 		return url;
 	}
 
+	public RemoteWebDriver startFirefox(URL url) {
+		return new RemoteWebDriver(url, DesiredCapabilities.firefox());
+	}
+
 	/**
 	 * Starts local Chrome for testing.
 	 * @throws IOException

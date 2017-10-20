@@ -3,6 +3,7 @@ package io.test.automation.robodriver.internal;
 import java.awt.GraphicsDevice;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,17 +13,23 @@ import io.test.automation.robodriver.RoboDriverCommandExecutor;
 
 public class RoboSequenceExecutor extends Thread {
 	
+	private static AtomicInteger CNT = new AtomicInteger(0);
+	
 	private static Logger LOGGER = LoggerUtil.get(RoboDriverCommandExecutor.class);
 	
-	private Sequence seq;
+	private Map<String, Object> sequenceActionsMap;
 	private Object tickLock = new Object();
 	private boolean allTicksCompleted;
 	private boolean nextTickCompleted;
 	private RoboUtil roboUtil = new RoboUtil();
 
 	public RoboSequenceExecutor(Sequence seq) {
-		super("robo-sequence-" + seq.hashCode());
-		this.seq = seq;
+		this(seq.encode());
+	}
+
+	public RoboSequenceExecutor(Map<String, Object> seqMap) {
+		super("robo-sequence-" + CNT.incrementAndGet());
+		this.sequenceActionsMap = seqMap;
 	}
 
 	@Override
@@ -75,10 +82,9 @@ public class RoboSequenceExecutor extends Thread {
 	@SuppressWarnings("unchecked")
 	private void executeTickByTick() throws InterruptedException {
 		synchronized (tickLock) {
-			Map<String, Object> seqMap = seq.encode();
-			LOGGER.log(Level.FINE, () -> String.format("ACTION sequence raw data: %s", seqMap));
-			String seqType = (String) seqMap.get("type");
-			List<Object> sequenceActionList = (List<Object>) seqMap.get("actions");
+			LOGGER.log(Level.FINE, () -> String.format("ACTION sequence raw data: %s", sequenceActionsMap));
+			String seqType = (String) sequenceActionsMap.get("type");
+			List<Object> sequenceActionList = (List<Object>) sequenceActionsMap.get("actions");
 			GraphicsDevice device = null; // target device must be defined by one of the following actions
 			int xElementScreenOffset = 0;
 			int yElementScreenOffset = 0;
@@ -114,8 +120,8 @@ public class RoboSequenceExecutor extends Thread {
 					// pointer actions
 					case "pointerMove":
 						Long tickDuration = (Long) actionDetails.get("duration");
-						Integer movePosX = xElementScreenOffset + (Integer) actionDetails.get("x");
-						Integer movePosY = yElementScreenOffset + (Integer) actionDetails.get("y");
+						Integer movePosX = xElementScreenOffset + toInt(actionDetails.get("x"));
+						Integer movePosY = yElementScreenOffset + toInt(actionDetails.get("y"));
 						roboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
@@ -147,6 +153,16 @@ public class RoboSequenceExecutor extends Thread {
 				}
 			}
 		}
+	}
+
+	private int toInt(Object number) {
+		if (number instanceof String) {
+			return Integer.parseInt((String) number);
+		}
+		if (number instanceof Number) {
+			return ((Number)number).intValue();
+		}
+		throw new RuntimeException(String.format("Invalid number %s", number));
 	}
 
 }

@@ -14,7 +14,6 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import io.test.automation.robodriver.RoboDriver;
@@ -28,6 +27,7 @@ import io.test.automation.robodriver.TestUtil;
 public class RoboDriverServerTest {
 	
 	private static String serverURL = System.getProperty("robodriver.test.server.url", "http://localhost:4444/wd/hub");
+	private static URL remoteAddress;
 
 	private static TestUtil util;
 	private static RemoteWebDriver browser;
@@ -49,13 +49,10 @@ public class RoboDriverServerTest {
 
 	@BeforeClass
 	public static void onBeforeClass() throws IOException {
-		URL remoteAddress = new URL(serverURL);
+		remoteAddress = new URL(serverURL);
 		if (!(serverRunning = aliveCheck(remoteAddress))) {
 			return;
 		}
-		// Create a RemoteWebDriver instance to use a remote RoboDriver Selnium server.
-		robo = new RemoteWebDriver(remoteAddress, RoboDriver.getDesiredCapabilities());
-
 		// Start browser used for testing RoboDriver.
 		util = new TestUtil();
 		browser = util.startChrome(new URL(serverURL));
@@ -73,8 +70,9 @@ public class RoboDriverServerTest {
 			return;
 		}		
 		util.clearInfoTextField(browser);
-		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
-		robo = new RoboDriver(roboCapabilities);
+		
+		// Create a RemoteWebDriver instance to use a remote RoboDriver Selnium server.
+		robo = new RemoteWebDriver(remoteAddress, RoboDriver.getDesiredCapabilities());
 	}
 
 	@After

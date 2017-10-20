@@ -94,9 +94,8 @@ public class RoboUtil {
 	}
 
 	public void showScreenDevices() {
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] gs = ge.getScreenDevices();
-		GraphicsDevice defaultScreenDevice = ge.getDefaultScreenDevice();
+		GraphicsDevice[] gs = getGraphicsDevices();
+		GraphicsDevice defaultScreenDevice = getDefaultDevice();
 		System.out.println("defaultScreenDevice: " + defaultScreenDevice);
 		for (int j = 0; j < gs.length; j++) {
 			GraphicsDevice gd = gs[j];
@@ -125,8 +124,7 @@ public class RoboUtil {
 
 	public void clacVirtualBounds() {
 		Rectangle virtualBounds = new Rectangle();
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] gdevices = ge.getScreenDevices();
+		GraphicsDevice[] gdevices = getGraphicsDevices();
 		for (int j = 0; j < gdevices.length; j++) {
 			GraphicsDevice gd = gdevices[j];
 			GraphicsConfiguration[] gc = gd.getConfigurations();
@@ -169,14 +167,12 @@ public class RoboUtil {
 	}
 
 	public GraphicsDevice getDeviceByIndex(int index) {
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] screenDevices = ge.getScreenDevices();
+		GraphicsDevice[] screenDevices = getGraphicsDevices();
 		return screenDevices[index];
 	}
 
 	public GraphicsDevice getDeviceById(String deviceId) {
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] screenDevices = ge.getScreenDevices();
+		GraphicsDevice[] screenDevices = getGraphicsDevices();
 		for (GraphicsDevice device : screenDevices) {
 			if (deviceId.toLowerCase().equals(device.getIDstring().toLowerCase())) {
 				return device;
@@ -187,12 +183,17 @@ public class RoboUtil {
 
 	public List<RoboScreen> getAllScreens(RemoteWebDriver driver) {
 		List<RoboScreen> result = new ArrayList<>();
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] screenDevices = ge.getScreenDevices();
+		GraphicsDevice[] screenDevices = getGraphicsDevices();
 		for (GraphicsDevice graphicsDevice : screenDevices) {
 			result.add(RoboScreen.getInstance(graphicsDevice, driver));
 		}
 		return result;
+	}
+
+	public GraphicsDevice[] getGraphicsDevices() {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] screenDevices = ge.getScreenDevices();
+		return screenDevices;
 	}
 
 	public void sendKeys(Robot robot, CharSequence[] keysToSend) {
@@ -263,7 +264,7 @@ public class RoboUtil {
 	}
 
 	// TODO throw exception if position is out of screen
-	public void mouseMove(GraphicsDevice device, Long tickDuration, Integer movePosX, Integer movePosY) {
+	public void mouseMove(GraphicsDevice device, Long tickDuration, int movePosX, int movePosY) {
 		LOGGER.log(Level.FINEST, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
 				movePosX, movePosY, tickDuration, device));
 		getRobot(device).mouseMove(movePosX, movePosY);

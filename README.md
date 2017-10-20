@@ -1,5 +1,7 @@
 # robodriver
 
+> Note: tested with Selenium 3.6.
+
 A WebDriver API to generate native system input events for the purposes of test automation, either locally or on a remote machine.
 
 The `RemoteWebDriver` interface can be used to find screen devices and to implement mouse and keyboard actions:
@@ -27,7 +29,7 @@ For drag and drop it is needed to provide a source and target element. For those
 can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
 > The origin of **robodriver** elements like screens and rectangles is at the top left! 
-> This is different to the Selenium W3C Actions, where origin of a **Browser** WebElement is the center of the element.
+> This is different to the Selenium W3C Actions, where the origin of a **Browser** WebElement is the center of the element.
 
 ```java
 WebElement source = screen.findElement(
@@ -77,3 +79,7 @@ See also the webdriver provider file `META-INF/services/org.openqa.selenium.remo
 ```
 java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.selenium.GridLauncherV3
 ```
+
+> Note: robodriver.jar must be before Selenium server JAR in the classpath. 
+> This is required because of a needed patch to support W3C Actions for robodriver DriverProvider implementation
+> and will be obsolete as soon Selenium server supports to configure the needed dialect.
