@@ -23,9 +23,11 @@ new Actions(robo)
 	.perform();
 ```
 
-## Python, JavaScript...
+## Python, JavaScript, Ruby...
 
-Any language binding can be used when running robodriver with Selenium server, see also chapter Remote Execution below.
+Any language binding can be used when running robodriver with Selenium server, see also chapter Remote Execution below. 
+
+Example in Python:
 
 ```python
 from selenium import webdriver
@@ -54,8 +56,8 @@ ActionChains(robo)         \
 For drag and drop it is needed to provide a source and target element. For those elements a `//rectangle` of a screen
 can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
-> The origin of **robodriver** elements like screens and rectangles is at the top left! 
-> This is different to Selenium DOM elements and W3C Actions, where the origin of a **Browser** `WebElement is the center of the element.
+> Note: The origin of **robodriver** `WebElement` objects like screens and rectangles is at the **top left!** 
+> This is different to Selenium DOM elements and W3C Actions, where the origin of a **Browser** `WebElement` is the center of the element.
 
 ```java
 WebElement source = screen.findElement(
