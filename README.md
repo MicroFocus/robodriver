@@ -95,6 +95,7 @@ The implementation can be found in class `io.test.automation.robodriver.tools.Ke
 ## Remote Execution
 
 Selenium server can be extended to use robodriver to drive applications on a remote machine.
+With that robodriver becomes client binding language agnostic. 
 On server startup the `robodriver.jar` will be loaded by the 
 dynamic webdriver loading feature of the Selenium server. 
 See also the webdriver provider file `META-INF/services/org.openqa.selenium.remote.server.DriverProvider`  
@@ -111,3 +112,15 @@ java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.s
 > Note: `robodriver.jar` must be before the Selenium server JAR in the classpath. 
 > This is required because of a needed patch to support W3C Actions protocol for the robodrivers `DriverProvider` implementation
 > and will be obsolete as soon Selenium server supports to configure the needed dialect. The patched line of code can be found in `NewSessionPayload.java`.
+
+Portable example in Java:
+
+```java
+URL serverEndpoint = new URL("http://localhost:4444/wd/hub");
+
+DesiredCapabilities roboCapabilities = new DesiredCapabilities();
+roboCapabilities.setCapability("browserName", "io.test.automation.robodriver");
+roboCapabilities.setCapability("platform", "ANY");
+
+RemoteWebDriver robodriver = new RemoteWebDriver(serverEndpoint, roboCapabilities);
+```
