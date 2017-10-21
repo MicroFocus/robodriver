@@ -13,14 +13,40 @@ RemoteWebDriver robo = new RemoteWebDriver(roboCapabilities);
 // find the default screen,
 WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 
-// send keys to screen
+// type keys 
 screen.sendKeys("hello robodriver");
 
-// click to screen at x,y position
+// click to the screen at x,y position
 new Actions(robo)
 	.moveToElement(screen, 100, 200)
 	.click()
 	.perform();
+```
+
+## Python, JavaScript...
+
+Any language binding can be used when running robodriver with Selenium server, see also chapter Remote Execution below.
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+
+server_endpoint = "http://127.0.0.1:4444/wd/hub"
+
+# connect robodriver to the Selenium server
+robo_capabilities={
+    'browserName': 'io.test.automation.robodriver', 
+    'platform':    'ANY' }
+robo = webdriver.Remote(server_endpoint, robo_capabilities)
+
+# type 'HELLO' to the default screen by sending native keyboard events
+ActionChains(robo)         \
+    .key_down(Keys.SHIFT)  \
+    .send_keys('hello')    \
+    .key_up(Keys.SHIFT)    \
+    .perform()
 ```
 
 ## Drag & Drop
@@ -29,7 +55,7 @@ For drag and drop it is needed to provide a source and target element. For those
 can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
 > The origin of **robodriver** elements like screens and rectangles is at the top left! 
-> This is different to the Selenium W3C Actions, where the origin of a **Browser** WebElement is the center of the element.
+> This is different to Selenium DOM elements and W3C Actions, where the origin of a **Browser** `WebElement is the center of the element.
 
 ```java
 WebElement source = screen.findElement(
@@ -80,6 +106,6 @@ See also the webdriver provider file `META-INF/services/org.openqa.selenium.remo
 java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.selenium.GridLauncherV3
 ```
 
-> Note: robodriver.jar must be before Selenium server JAR in the classpath. 
-> This is required because of a needed patch to support W3C Actions for robodriver DriverProvider implementation
-> and will be obsolete as soon Selenium server supports to configure the needed dialect.
+> Note: `robodriver.jar` must be before the Selenium server JAR in the classpath. 
+> This is required because of a needed patch to support W3C Actions protocol for the robodrivers `DriverProvider` implementation
+> and will be obsolete as soon Selenium server supports to configure the needed dialect. The patched line of code can be found in `NewSessionPayload.java`.
