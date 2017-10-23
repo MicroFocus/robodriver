@@ -1,4 +1,4 @@
-- implement mouse buttons
+- implement mouse buttons with modifier keys
 
 - add demo: drag&drop http://the-internet.herokuapp.com/drag_and_drop
 
