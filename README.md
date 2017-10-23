@@ -7,7 +7,7 @@ A WebDriver API to generate native system input events for the purposes of test 
 The `RemoteWebDriver` interface can be used to find screen devices and to implement mouse and keyboard actions:
 
 ```java
-DesiredCapabilities roboCapabilities = new DesiredCapabilities("robodriver", null, Platform.ANY);
+DesiredCapabilities roboCapabilities = new DesiredCapabilities("io.test.automation.robodriver", null, Platform.ANY);
 RemoteWebDriver robo = new RemoteWebDriver(roboCapabilities);
 
 // find the default screen,
@@ -89,8 +89,31 @@ Easiest way to build robodriver.jar is using Maven and build file `pom.xml`, ins
 
 The utility `Keyboard` opens a window that logs Selenium key codes and also system dependent virtual key codes 
 for the current keyboard in use. 
-To start this tool use maven to build robodriver and run `mvn exec:java` from the command line. 
+To start this tool use maven to build robodriver and run `mvn exec:java` from the command line.
+The Selenium class `Keys` do not support all virtual keys of a specific keyboard, for example to type a grave or acute 
+the virtual key code constants can be used. Use `Keyboard` to find the specific VK-IDs or see VK_xxx constants of 
+[KeyEvent javadoc](https://docs.oracle.com/javase/7/docs/api/java/awt/event/KeyEvent.html).
+   
+Example: `Keyboard` outputs typing a 'latin capital letter A with acute' 
+```
+Keys.SHIFT           VK_SHIFT                       (key=Shift, char='￿', ext-code=0x10)
+Keys.<NO VK>         VK_DEAD_ACUTE                  (key=Dead Grave, char='`', ext-code=0x81)
+Keys.<NO VK>         VK_A                           (key=A, char='A', ext-code=0x41)
+```
+
+In your script you can use the VK_xxx constant names, they are interpreted by robodriver on replay:
+```java
+new Actions(robo)
+	.keyDown(Keys.SHIFT)
+	.perform();
+screen.sendKeys("VK_DEAD_ACUTE", "A"); 
+new Actions(robo)
+	.keyUp(Keys.SHIFT)
+	.perform();
+```
+
 The implementation can be found in class `io.test.automation.robodriver.tools.Keyboard`. 
+
 
 ## Remote Execution
 

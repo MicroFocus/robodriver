@@ -90,6 +90,27 @@ public class RoboDriverActionsTest {
 	}
 	
 	@Test
+	public void testSendKeysCapitalLetterWithAcute() throws Exception {
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		
+		// when
+		new Actions(robo)
+			.keyDown(Keys.SHIFT)
+			.perform();
+		
+		screen.sendKeys("VK_DEAD_ACUTE", "A"); // single 'VK_xx' arguments are interpreted as virtual key code, see also Java KeyEvent.class 
+		
+		new Actions(robo)
+			.keyUp(Keys.SHIFT)
+			.perform();
+		
+		// then
+		assertEquals("À", textInputField.getAttribute("value"));
+	}
+	
+	@Test
 	public void testSendKeysWithVirtualKeyNames() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field

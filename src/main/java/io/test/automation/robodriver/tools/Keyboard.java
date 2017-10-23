@@ -33,7 +33,7 @@ public class Keyboard {
 				mainTextOutput.setText("");
 				printlnMessage("Type key to see corresponding VK-id:");
 				printlnMessage();
-				while(1==1) {
+				while(true) {
 					keyListener.startRecordNextEvent();
 					String keyInfo = getKeyInfo();
 					printlnMessage();

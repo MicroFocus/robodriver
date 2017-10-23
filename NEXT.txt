@@ -1,5 +1,3 @@
-- add demo: draw circle
-
 - implement mouse buttons
 
 - add demo: drag&drop http://the-internet.herokuapp.com/drag_and_drop
