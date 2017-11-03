@@ -80,7 +80,7 @@ public class RoboSequenceExecutor extends Thread {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void executeTickByTick() throws InterruptedException {
+	private void executeTickByTick() throws Exception {
 		synchronized (tickLock) {
 			LOGGER.log(Level.FINE, () -> String.format("ACTION sequence raw data: %s", sequenceActionsMap));
 			String seqType = (String) sequenceActionsMap.get("type");
@@ -125,10 +125,12 @@ public class RoboSequenceExecutor extends Thread {
 						roboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
-						roboUtil.mouseDown(device);
+						Integer button = (Integer) actionDetails.get("button");
+						roboUtil.mouseDown(device, button);
 						break;
 					case "pointerUp":
-						roboUtil.mouseUp(device);
+						button = (Integer) actionDetails.get("button");
+						roboUtil.mouseUp(device, button);
 						break;
 						// key actions
 					case "pause":

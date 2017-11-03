@@ -241,4 +241,43 @@ public class RoboDriverActionsTest {
 		// then
 		assertEquals("mouse move: from (100,100) to (120,120)", outputs.getAttribute("value").trim());
 	}
+	
+	@Test
+	public void testDoubleClick() throws Exception {
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
+			.doubleClick()
+			.perform();
+		
+		// then
+		assertEquals("mouse move: from (100,100) to (100,100)\n"
+				+ "click pos: 100,100\n"
+				+ "mouse move: from (100,100) to (100,100)\n"
+				+ "click pos: 100,100\n"
+				+ "double click", 
+				textInputField.getAttribute("value").trim());
+	}	
+	
+	@Test
+	public void testContextMenuClick() throws Exception {
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
+			.contextClick()
+			.perform();
+		
+		// then
+		assertEquals("mouse move: from (100,100) to (100,100)\n"
+				+ "context click", 
+				textInputField.getAttribute("value").trim());
+	}	
 }

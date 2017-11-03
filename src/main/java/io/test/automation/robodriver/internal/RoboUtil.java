@@ -253,14 +253,24 @@ public class RoboUtil {
 		return getRobot(getDefaultDevice());
 	}
 
-	public void mouseDown(GraphicsDevice device) {
+	public void mouseDown(GraphicsDevice device, Integer button) {
 		LOGGER.log(Level.FINEST, ()->String.format("mouse down, device=%s", device)); 
-		getRobot(device).mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		int buttonMask = getInputEventMouseButtonMask(button);
+		getRobot(device).mousePress(buttonMask);
 	}
 
-	public void mouseUp(GraphicsDevice device) {
+	private int getInputEventMouseButtonMask(Integer webDriverButtonId) {
+		int buttonMask = InputEvent.BUTTON1_DOWN_MASK;
+		if (webDriverButtonId == 2) { // right mouse button
+			buttonMask = InputEvent.BUTTON3_DOWN_MASK;
+		}
+		return buttonMask;
+	}
+
+	public void mouseUp(GraphicsDevice device, Integer button) {
 		LOGGER.log(Level.FINEST, ()->String.format("mouse up, device=%s", device)); 
-		getRobot(device).mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+		int buttonMask = getInputEventMouseButtonMask(button);
+		getRobot(device).mouseRelease(buttonMask);
 	}
 
 	// TODO throw exception if position is out of screen

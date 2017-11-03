@@ -46,10 +46,10 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			roboUtil.sendKeys(robot, keysToSend);
 		} else if (DriverCommand.MOUSE_UP.equals(command.getName())) {
 			GraphicsDevice device = getDevice(command.getParameters());
-			roboUtil.mouseUp(device);
+			roboUtil.mouseUp(device, 1);
 		} else if (DriverCommand.MOUSE_DOWN.equals(command.getName())) {
 			GraphicsDevice device = getDevice(command.getParameters());
-			roboUtil.mouseDown(device);
+			roboUtil.mouseDown(device, 1);
 		} else if (DriverCommand.MOVE_TO.equals(command.getName())) {
 			Map<String, ?> parameters = command.getParameters();
 			if (parameters.containsKey("element")) {
