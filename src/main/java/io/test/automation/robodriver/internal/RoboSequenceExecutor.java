@@ -119,10 +119,10 @@ public class RoboSequenceExecutor extends Thread {
 					switch (actionDetailType) {
 					// pointer actions
 					case "pointerMove":
-						Long tickDuration = (Long) actionDetails.get("duration");
+						Long moveDuration = (Long) actionDetails.get("duration");
 						Integer movePosX = xElementScreenOffset + toInt(actionDetails.get("x"));
 						Integer movePosY = yElementScreenOffset + toInt(actionDetails.get("y"));
-						roboUtil.mouseMove(device, tickDuration, movePosX, movePosY);
+						roboUtil.mouseMove(device, moveDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
 						Integer button = (Integer) actionDetails.get("button");
