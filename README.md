@@ -94,7 +94,7 @@ The Selenium class `Keys` do not support all virtual keys of a specific keyboard
 the virtual key code constants can be used. Use `Keyboard` to find the specific VK-IDs or see VK_xxx constants of 
 [KeyEvent javadoc](https://docs.oracle.com/javase/7/docs/api/java/awt/event/KeyEvent.html).
    
-Example: `Keyboard` outputs typing a 'latin capital letter A with acute' 
+Example: `Keyboard` outputs typing a latin capital letter A with acute
 ```
 Keys.SHIFT           VK_SHIFT                       (key=Shift, char='￿', ext-code=0x10)
 Keys.<NO VK>         VK_DEAD_ACUTE                  (key=Dead Grave, char='`', ext-code=0x81)
