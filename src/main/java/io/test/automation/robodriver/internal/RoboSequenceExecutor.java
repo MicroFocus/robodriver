@@ -134,7 +134,10 @@ public class RoboSequenceExecutor extends Thread {
 						break;
 						// key actions
 					case "pause":
-						// nothing to do 
+						Long durationInMs = (Long) actionDetails.get("duration");
+						if (durationInMs != null && durationInMs > 0) {
+							roboUtil.sleep(durationInMs);
+						}
 						break;
 					case "keyDown":
 						String value = (String) actionDetails.get("value");

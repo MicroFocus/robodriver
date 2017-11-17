@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.time.Duration;
 
 import org.junit.*;
 import org.openqa.selenium.By;
@@ -307,5 +308,21 @@ public class RoboDriverActionsTest {
 		// then
 		clickInfoText = clickInfo.getAttribute("value");
 		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));	
+	}
+	
+	@Test
+	public void testPause() {		
+		WebElement textInputField = browser.findElementById("outputs");
+		textInputField.click(); // set focus to input field
+
+		// when
+		long startTime = System.currentTimeMillis();
+		new Actions(robo)
+			.pause(Duration.ofSeconds(2))
+			.perform();
+
+		// then
+		long startEndTimeDiff = System.currentTimeMillis() - startTime;
+		assertTrue("expected delay of about 2 seconds but was " + startEndTimeDiff/1000, startEndTimeDiff >= 1900L);	
 	}
 }
