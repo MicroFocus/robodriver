@@ -153,7 +153,7 @@ public class RoboDriverActionsTest {
 	}
 	
 	@Test
-	@Ignore // FIX Selenium 3.4 binding adds click to (0,0) actions to the target element to bring it in focus, that is bad and not needed!
+	@Ignore // FIX: Java Selenium client adds click to (0,0) ticks, that is bad! Use API without target.
 	public void testSendShiftKeyWithTargetActions() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
@@ -280,4 +280,32 @@ public class RoboDriverActionsTest {
 				+ "context click", 
 				textInputField.getAttribute("value").trim());
 	}	
+	
+	@Test
+	public void testClickAndHold() {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+		
+		// when
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		new Actions(robo)
+			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
+			.clickAndHold()
+			.perform();
+		
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		assertTrue("click and hold should not trigger any event", clickInfoText.isEmpty());
+		
+		
+		// when
+		util.sleep(2);
+		new Actions(robo)
+			.release()
+			.perform();
+		
+		// then
+		clickInfoText = clickInfo.getAttribute("value");
+		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));	
+	}
 }

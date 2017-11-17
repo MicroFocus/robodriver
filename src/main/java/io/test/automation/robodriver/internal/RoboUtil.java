@@ -366,6 +366,7 @@ public class RoboUtil {
 		roboUtil.clacDefaultVirtualBounds();
 		
 		/*
+		 * UTF note:
 		 * The range of legal code points is now U+0000 to U+10FFFF, known as Unicode scalar value. 
 		 * (Refer to the  definition of the U+n notation in the Unicode Standard.) 
 		 * The set of characters from U+0000 to U+FFFF is sometimes referred to as the 

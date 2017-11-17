@@ -35,7 +35,9 @@
           mousedownY = event.offsetY; 
         };
         elem.ondblclick = function(event) {
-          out.value += "double click\n";
+          if (mousedownX == event.offsetX && mousedownY == event.offsetY) {
+            out.value += "double click\n";
+          }
         }
         elem.oncontextmenu = function(event) {
         	out.value += "context click\n"

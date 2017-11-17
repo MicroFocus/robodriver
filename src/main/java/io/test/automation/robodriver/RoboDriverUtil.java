@@ -37,7 +37,7 @@ public class RoboDriverUtil {
 		Rectangle elementViewportRectangle = new Rectangle(element.getLocation(), element.getSize());
 		int elementScreenX = viewportScreenRectangle.getX() + elementViewportRectangle.getX();
 		int elementScreenY = viewportScreenRectangle.getY() + elementViewportRectangle.getY();
-		return new Rectangle(new Point(elementScreenX, elementScreenY), new Dimension(elementViewportRectangle.getWidth(), elementViewportRectangle.getHeight()));
+		return buildRectangle(elementScreenX, elementScreenY, elementViewportRectangle.getWidth(), elementViewportRectangle.getHeight());
 	}
 
 	public Rectangle getScreenRectangleOfBrowserViewport(RemoteWebDriver driver) {
@@ -49,8 +49,7 @@ public class RoboDriverUtil {
 		int viewportBorderBottom = getBottomViewportBorder(windowScreenRect, viewportWidth);
 		int viewportScreenX = windowScreenRect.getX() + viewportBorderLeft;
 		int viewportScreenY = windowScreenRect.getY() + windowScreenRect.getHeight() - viewportBorderBottom - viewportHeight;
-		Rectangle viewportScreenRectangle = new Rectangle(new Point(viewportScreenX, viewportScreenY), new Dimension(viewportWidth, viewportHeight));
-		return viewportScreenRectangle;
+		return buildRectangle(viewportScreenX, viewportScreenY, viewportWidth, viewportHeight);
 	}
 
 	public Rectangle getScreenRectangleOfCurrentBrowserWindow(RemoteWebDriver driver) {
@@ -100,5 +99,9 @@ public class RoboDriverUtil {
 		if (driver.getCapabilities().getBrowserName().equals(RoboDriver.BROWSER_NAME)) {
 			throw new InvalidArgumentException("driver argument must be a browser driver");
 		}
+	}
+
+	private Rectangle buildRectangle(int elementScreenX, int elementScreenY, int width, int height) {
+		return new Rectangle(new Point(elementScreenX, elementScreenY), new Dimension(width, height));
 	}
 }
