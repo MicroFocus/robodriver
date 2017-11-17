@@ -1,4 +1,8 @@
-- implement mouse buttons with modifier keys
+- implement screenshot for screens and rectangles
+
+- expose wait-for-idle delay in milliseconds as a capability
+
+- retrieve screen informations and propagate back with Capabilities
 
 - add demo: drag&drop http://the-internet.herokuapp.com/drag_and_drop
 
@@ -8,8 +12,3 @@
 	  
 - implement recorder to generate Actions expression for key strokes
 
-- implement screenshot for screens and rectangles
-
-- expose wait-for-idle delay in milliseconds as a capability
-
-- document usage with other languages: python, JS, ...
