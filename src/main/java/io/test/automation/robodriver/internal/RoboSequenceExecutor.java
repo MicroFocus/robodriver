@@ -119,23 +119,23 @@ public class RoboSequenceExecutor extends Thread {
 					switch (actionDetailType) {
 					// pointer actions
 					case "pointerMove":
-						Long moveDuration = (Long) actionDetails.get("duration");
-						Integer movePosX = xElementScreenOffset + toInt(actionDetails.get("x"));
-						Integer movePosY = yElementScreenOffset + toInt(actionDetails.get("y"));
+						int moveDuration = toInt(actionDetails.get("duration"));
+						int movePosX = xElementScreenOffset + toInt(actionDetails.get("x"));
+						int movePosY = yElementScreenOffset + toInt(actionDetails.get("y"));
 						roboUtil.mouseMove(device, moveDuration, movePosX, movePosY);
 						break;
 					case "pointerDown":
-						Integer button = (Integer) actionDetails.get("button");
+						int button = toInt(actionDetails.get("button"));
 						roboUtil.mouseDown(device, button);
 						break;
 					case "pointerUp":
-						button = (Integer) actionDetails.get("button");
+						button = toInt(actionDetails.get("button"));
 						roboUtil.mouseUp(device, button);
 						break;
 						// key actions
 					case "pause":
-						Long durationInMs = (Long) actionDetails.get("duration");
-						if (durationInMs != null && durationInMs > 0) {
+						int durationInMs = toInt(actionDetails.get("duration"));
+						if (durationInMs > 0) {
 							roboUtil.sleep(durationInMs);
 						}
 						break;

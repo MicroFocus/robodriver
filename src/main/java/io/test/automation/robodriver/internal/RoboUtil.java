@@ -274,11 +274,11 @@ public class RoboUtil {
 	}
 
 	// TODO throw exception if position is out of screen
-	public void mouseMove(GraphicsDevice device, Long moveDuration, int movePosX, int movePosY) {
+	public void mouseMove(GraphicsDevice device, int moveDurationInMs, int movePosX, int movePosY) {
 		LOGGER.log(Level.FINEST, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
-				movePosX, movePosY, moveDuration, device));
+				movePosX, movePosY, moveDurationInMs, device));
 		getRobot(device).mouseMove(movePosX, movePosY);
-		sleep(moveDuration);
+		sleep(moveDurationInMs);
 	}
 
 	public void keyDown(GraphicsDevice device, char c) {
@@ -352,7 +352,7 @@ public class RoboUtil {
 		return new Character((char)vk.intValue()).toString();
 	}
 	
-	public void sleep(long millis) {
+	public void sleep(int millis) {
 		try {
 			Thread.sleep(millis);
 		} catch (InterruptedException e) {
