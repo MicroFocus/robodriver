@@ -79,11 +79,11 @@ Easiest way to build robodriver.jar is using Maven and build file `pom.xml`, ins
 
 1. Open a shell window in the folder, usually: `../robodriver`.
 
-1. Extend the environment search path to find chromedriver, it is needed for test runs .
+1. Ensure Chrome is installed and extend the environment search path to find latest chromedriver binary, it is needed for test runs .
 
 1. Build and run tests with maven command `mvn install`, to skip the test runs you can use `mvn install -DskipTests`.
 
-1. See .jar file in output folder `./target`.
+1. See robodriver.jar file in output folder `./target`.
 
 ## Tools
 

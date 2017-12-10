@@ -6,7 +6,7 @@
 
 - add demo: drag&drop http://the-internet.herokuapp.com/drag_and_drop
 
-- test/document usage with Selnium grid nodes
+- test/document usage with Selenium grid nodes
 
 - determine virtual key names for keys of remote keyboard layout and propagate back with Capabilities.
 	  

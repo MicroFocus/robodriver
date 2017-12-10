@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.test-automation</groupId>
   <artifactId>robodriver</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>1.0</version>
   <name>RoboDriver for UI-Automation</name>
   <description>A WebDriver API to generate native system input events for the purposes of test automation, either locally or on a remote machine.</description>
   <properties>

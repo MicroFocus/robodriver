@@ -23,16 +23,21 @@ public class DrawCircle {
 		WebElement clickArea = browser.findElementById("clickarea");
 		Rectangle drawArea = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea);
 		Point drawAreaCenter = new Point(drawArea.x + drawArea.width/2, drawArea.y + drawArea.height/2);
+		Point leftEyeCenter = new Point(drawAreaCenter.x - drawArea.width/4 + 10, drawAreaCenter.y - drawArea.height/4 + 10);
+		Point rightEyeCenter = new Point(drawAreaCenter.x + drawArea.width/4 - 10, drawAreaCenter.y - drawArea.height/4 + 10);
 
 		// find the screen
 		WebElement screen = robo.findElementByXPath("//screen");
 		
 		// draw "freehand" circles
-		drawCircle(robo, screen, drawAreaCenter, 80d /*radius*/, 16 /*number of points*/);
-		drawCircle(robo, screen, drawAreaCenter, 50d /*radius*/, 32 /*number of points*/);
+		drawCircle(robo, screen, drawAreaCenter, 84d /*radius*/, 16 /*number of points*/, false);
+		drawCircle(robo, screen, drawAreaCenter, 50d /*radius*/, 24 /*number of points*/, true);
+		drawCircle(robo, screen, leftEyeCenter, 8d /*radius*/, 5 /*number of points*/, false);
+		drawCircle(robo, screen, rightEyeCenter, 8d /*radius*/, 5 /*number of points*/, false);
 	}
 
-	private static void drawCircle(RoboDriver robo, WebElement screen, Point origin, double radius, int increments) {
+	private static void drawCircle(RoboDriver robo, WebElement screen, Point origin, double radius, 
+			int increments, boolean half) {
 		Actions actions = new Actions(robo);
 		int vectorX = 0;
 		int vectorY = 0;
@@ -40,7 +45,9 @@ public class DrawCircle {
 		
 		actions.moveToElement(screen, origin.x, origin.y).perform();
 		for (int i = 0; i < increments; i++) {
-
+			if (half && i > increments/2) {
+				break;
+			}
 			double alpha = 2 * Math.PI / increments * i;
 			vectorX = (int) (radius * Math.cos(alpha));
 			vectorY = (int) (radius * Math.sin(alpha));
@@ -51,7 +58,9 @@ public class DrawCircle {
 				drawLineFromCurrentPointToNewPoint(screen, actions, origin.x + vectorX, origin.y + vectorY); 
 			}
 		}
-		drawLineFromCurrentPointToNewPoint(screen, actions, drawStart.x, drawStart.y); 
+		if (!half) {
+			drawLineFromCurrentPointToNewPoint(screen, actions, drawStart.x, drawStart.y); 
+		}
 	}
 
 	private static void drawLineFromCurrentPointToNewPoint(WebElement screen, Actions actions, int xOffset, int yOffset) {
