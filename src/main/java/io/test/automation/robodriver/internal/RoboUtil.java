@@ -1,13 +1,22 @@
 package io.test.automation.robodriver.internal;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -352,6 +361,16 @@ public class RoboUtil {
 		return new Character((char)vk.intValue()).toString();
 	}
 	
+	public String getScreenshot(GraphicsDevice device) throws IOException {
+		Robot robot = getRobot(device);
+		Rectangle screenRectangle = device.getDefaultConfiguration().getBounds();
+		BufferedImage capture = robot.createScreenCapture(screenRectangle);
+		ByteArrayOutputStream result = new ByteArrayOutputStream();
+		OutputStream output = Base64.getEncoder().wrap(result);
+		ImageIO.write(capture, "png", output);
+		return result.toString();
+	}
+
 	public void sleep(int millis) {
 		try {
 			Thread.sleep(millis);

@@ -1,10 +1,18 @@
 package io.test.automation.robodriver;
 
-import java.awt.*;
+import java.awt.GraphicsDevice;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -12,9 +20,17 @@ import java.util.regex.Pattern;
 
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.interactions.Sequence;
-import org.openqa.selenium.remote.*;
+import org.openqa.selenium.remote.Command;
+import org.openqa.selenium.remote.CommandExecutor;
+import org.openqa.selenium.remote.DriverCommand;
+import org.openqa.selenium.remote.ErrorCodes;
+import org.openqa.selenium.remote.Response;
 
-import io.test.automation.robodriver.internal.*;
+import io.test.automation.robodriver.internal.LoggerUtil;
+import io.test.automation.robodriver.internal.RoboScreen;
+import io.test.automation.robodriver.internal.RoboScreenRectangle;
+import io.test.automation.robodriver.internal.RoboSequenceExecutor;
+import io.test.automation.robodriver.internal.RoboUtil;
 
 public class RoboDriverCommandExecutor implements CommandExecutor {
 	
@@ -39,7 +55,11 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	public Response execute(Command command) throws IOException {
 		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
 		Response response = new Response();
-		if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
+		if (DriverCommand.SCREENSHOT.equals(command.getName())) {
+			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
+			String screenshot = roboUtil.getScreenshot(device);
+			response.setValue(screenshot);
+		} else if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
 			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
 			Robot robot = roboUtil.getRobot(device);
 			CharSequence[] keysToSend = (CharSequence[]) command.getParameters().get("value");
