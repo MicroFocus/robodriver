@@ -144,11 +144,6 @@ public class RoboScreen extends RemoteWebElement {
 		};
 	}
 
-	@Override
-	public String getId() {
-		return device.getIDstring();
-	}
-
 	public GraphicsDevice getDevice() {
 		return device;
 	}
@@ -159,7 +154,7 @@ public class RoboScreen extends RemoteWebElement {
 	}
 
 	public static RoboScreen getInstance(GraphicsDevice device, RemoteWebDriver driver) {
-		String id = device.getIDstring();
+		String id = "screen-" + device.getIDstring();
 		if (roboScreenCache.containsKey(id)) {
 			return roboScreenCache.get(id);
 		} else {

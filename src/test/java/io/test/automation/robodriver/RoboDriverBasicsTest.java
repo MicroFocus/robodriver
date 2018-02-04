@@ -99,8 +99,8 @@ public class RoboDriverBasicsTest {
 		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
 		RoboScreen screen = (RoboScreen) roboDriver.findElementByXPath("//screen[@default=true]");
 		
-		assertEquals(screen.getDevice().getIDstring(), screen.getId());
-		assertEquals(screen.getDevice().getIDstring(), RoboScreen.getScreenById(screen.getId()).getId());
+		assertEquals("screen-" + screen.getDevice().getIDstring(), screen.getId());
+		assertEquals("screen-" + screen.getDevice().getIDstring(), RoboScreen.getScreenById(screen.getId()).getId());
 	}
 	
 	@Test

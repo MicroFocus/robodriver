@@ -136,6 +136,10 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			if (id != null && id.startsWith("rectangle")) {
 				RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
 				response.setValue(rectangle.getScreenshot());
+			} else if (id != null && id.startsWith("screen")) {
+				RoboScreen screen = RoboScreen.getScreenById(id);
+				String screenshot = roboUtil.getScreenshot(screen.getDevice());
+				response.setValue(screenshot);
 			} else {
 				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
 			}

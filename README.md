@@ -70,6 +70,24 @@ new Actions(robo)
 	.perform();
 ```
 
+## Capture Screenshot or Rectangle
+
+To capture full screen or rectanlge areas the screen and rectangle element objects can be used:
+
+```java
+// get screenshot from default monitor
+File screenshotFile = robo.getScreenshotAs(OutputType.FILE);
+
+// get screenshot from a spedific monitor
+WebElement screen = robo.findElementByXPath("/screen[0]");
+File screenshotFile = screen.getScreenshotAs(OutputType.FILE);
+
+// capture a specific area from the default screen,
+// at pixel position 50,100 (from left upper corner) and width = 300, height = 500
+WebElement screenRectangle = robo.findElementByXPath(
+    String.format("//screen[@default=true]//rectangle[@dim='50, 100, 300, 500']", 
+```
+
 ## Build
 
 Easiest way to build robodriver.jar is using Maven and build file `pom.xml`, install Maven from 

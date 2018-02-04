@@ -73,6 +73,21 @@ public class RoboDriverScreenshotTest {
 	}
 	
 	@Test
+	public void testScreenshotFromScreenX() throws IOException {
+		WebElement screen = robo.findElementByXPath("/screen[0]");
+				
+		// when
+		File screenshotFile = screen.getScreenshotAs(OutputType.FILE);
+		
+		// then
+		BufferedImage screenshot = ImageIO.read(screenshotFile);
+		Color color = new Color(screenshot.getRGB(casp.x + 100, casp.y + 100));
+		assertEquals(0x00, color.getRed());
+		assertEquals(0x00, color.getGreen());
+		assertEquals(0xFF, color.getBlue());
+	}
+	
+	@Test
 	public void testScreenshotRectangle() throws IOException {
 		RoboDriverUtil roboUtil = new RoboDriverUtil();
 		WebElement testImage = browser.findElementById("testimage");
