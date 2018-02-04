@@ -123,13 +123,22 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			String value = parameters.get("value").toString().toLowerCase();
 			ScreenXpath xpath = new ScreenXpath(value);
 			if (! xpath.isRectangle()) {
-				throw new WebDriverException("connot find child '" + value + "' from device ID '" + id + "'");
+				throw new WebDriverException("cannot find child '" + value + "' from device ID '" + id + "'");
 			}
 			Rectangle rectangle = xpath.getRectangle();
 			if (rectangle == null) {
 				rectangle = screen.getRectAwt();
 			}
 			response.setValue(new RoboScreenRectangle(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height));
+		} else if (DriverCommand.ELEMENT_SCREENSHOT.equals(command.getName())) {
+			Map<String, ?> parameters = command.getParameters();
+			String id = parameters.get("id").toString();
+			if (id != null && id.startsWith("rectangle")) {
+				RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
+				response.setValue(rectangle.getScreenshot());
+			} else {
+				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
+			}
 		} else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
 			String sessionId = UUID.randomUUID().toString();
 			HashMap<String, Object> values = new HashMap<>();

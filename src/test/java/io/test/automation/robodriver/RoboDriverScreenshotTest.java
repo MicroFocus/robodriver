@@ -7,6 +7,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.imageio.ImageIO;
 
@@ -16,9 +18,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+
+import io.test.automation.robodriver.internal.RoboUtil;
 
 public class RoboDriverScreenshotTest {
 
@@ -65,5 +70,31 @@ public class RoboDriverScreenshotTest {
 		assertEquals(0x00, color.getRed());
 		assertEquals(0x00, color.getGreen());
 		assertEquals(0xFF, color.getBlue());
+	}
+	
+	@Test
+	public void testScreenshotRectangle() throws IOException {
+		RoboDriverUtil roboUtil = new RoboDriverUtil();
+		WebElement testImage = browser.findElementById("testimage");
+		Rectangle rect = roboUtil.getScreenRectangleOfBrowserElement(testImage);
+		WebElement screenRectElem = robo.findElementByXPath(
+				String.format("//screen[@default=true]//rectangle[@dim='%d,%d,%d,%d']", 
+						rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight()));
+		
+		// when
+		File screenRectangleFile = screenRectElem.getScreenshotAs(OutputType.FILE);
+		
+		// then
+		assertEqualsImage("test_image_1.png", screenRectangleFile);
+	}
+
+	private void assertEqualsImage(String expectedImage, File imageFile) throws IOException {
+		File expectedImageFile = new File(this.getClass().getClassLoader().getResource(expectedImage).getFile());
+		File imageFileCopy = new File(expectedImageFile.getParent(), "screenhsot.png");
+		System.out.println("check image: " + imageFileCopy.getAbsolutePath());
+		Files.copy(imageFile.toPath(), imageFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		RoboUtil roboUtil = new RoboUtil();
+		boolean matchesExact = roboUtil.match(expectedImageFile, imageFileCopy);
+		assertTrue(matchesExact);
 	}
 }

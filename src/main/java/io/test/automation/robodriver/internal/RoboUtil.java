@@ -362,9 +362,13 @@ public class RoboUtil {
 	}
 	
 	public String getScreenshot(GraphicsDevice device) throws IOException {
-		Robot robot = getRobot(device);
 		Rectangle screenRectangle = device.getDefaultConfiguration().getBounds();
-		BufferedImage capture = robot.createScreenCapture(screenRectangle);
+		return getScreenshot(device, screenRectangle);
+	}
+
+	public String getScreenshot(GraphicsDevice device, Rectangle rectangle) throws IOException {
+		Robot robot = getRobot(device);
+		BufferedImage capture = robot.createScreenCapture(rectangle);
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
 		OutputStream output = Base64.getEncoder().wrap(result);
 		ImageIO.write(capture, "png", output);
@@ -404,6 +408,24 @@ public class RoboUtil {
 		 * ...
 		 * http.//www.unicode.org/glossary 
 		 */
+	}
+
+	public boolean match(File expectedImage, File imageFile) throws IOException {
+		BufferedImage i1 = ImageIO.read(expectedImage);
+		BufferedImage i2 = ImageIO.read(imageFile);
+		// compare data-buffer objects //
+		if(i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight()) {
+			for (int x = 0; x < i1.getWidth(); x++) {
+				for (int y = 0; y < i1.getHeight(); y++) {
+					if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }
