@@ -1,5 +1,8 @@
 package io.test.automation.robodriver.internal;
 
+import java.awt.Rectangle;
+
+import org.openqa.selenium.Point;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 public class RoboScreenRectangle extends RemoteWebElement {
@@ -16,6 +19,10 @@ public class RoboScreenRectangle extends RemoteWebElement {
 		this.y = y;
 		this.widht = widht;
 		this.height = height;
+	}
+
+	public RoboScreenRectangle(RoboScreen screen, Rectangle rectangle) {
+		this(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 	}
 
 	public RoboScreen getScreen() {
@@ -38,4 +45,13 @@ public class RoboScreenRectangle extends RemoteWebElement {
 		return height;
 	}
 
+	@Override
+	public Point getLocation() {
+		return new Point(getX(), getY());
+	}
+	
+	@Override
+	public org.openqa.selenium.Rectangle getRect() {
+		return new org.openqa.selenium.Rectangle(getX(), getY(), getHeight(), getWidht());
+	}
 }

@@ -15,6 +15,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import io.test.automation.robodriver.internal.RoboScreen;
+import io.test.automation.robodriver.internal.RoboScreenRectangle;
 
 public class RoboDriverBasicsTest {
 
@@ -110,6 +111,30 @@ public class RoboDriverBasicsTest {
 		
 		WebElement rectangle = screen.findElement(By.xpath("//rectangle[@dim='70,80,100,200']"));
 		assertNotNull(rectangle);
+ 		assertEquals(70, rectangle.getLocation().getX());
+		assertEquals(80, rectangle.getLocation().getY());
+		assertEquals(70, rectangle.getRect().getX());
+		assertEquals(80, rectangle.getRect().getY());
+		assertEquals(100, rectangle.getRect().getWidth());
+		assertEquals(200, rectangle.getRect().getHeight());
+	}
+	
+	@Test
+	public void testFindRectangleOfScreenByFullXpath() {
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
+		
+		WebElement rectangle = roboDriver.findElement(
+				By.xpath("//screen[@default=true]//rectangle[@dim='70,80,100,200']"));
+		
+		assertNotNull(rectangle);
+		assertEquals(RoboScreenRectangle.class.getSimpleName(), rectangle.getClass().getSimpleName());
+		assertEquals(70, rectangle.getLocation().getX());
+		assertEquals(80, rectangle.getLocation().getY());
+		assertEquals(70, rectangle.getRect().getX());
+		assertEquals(80, rectangle.getRect().getY());
+		assertEquals(100, rectangle.getRect().getWidth());
+		assertEquals(200, rectangle.getRect().getHeight());
 	}
 	
 	private void assertScrenRectangle(WebElement screen) {

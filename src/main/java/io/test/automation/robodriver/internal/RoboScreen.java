@@ -9,7 +9,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.internal.Coordinates;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
@@ -195,5 +199,9 @@ public class RoboScreen extends RemoteWebElement {
 		return sb.toString();
 	}
 
+	public java.awt.Rectangle getRectAwt() {
+		Rectangle r = getRect();
+		return new java.awt.Rectangle(r.x, r.y, r.width, r.height);
+	}
 }
 
