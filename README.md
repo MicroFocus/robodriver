@@ -85,7 +85,8 @@ File screenshotFile = screen.getScreenshotAs(OutputType.FILE);
 // capture a specific area from the default screen,
 // at pixel position 50,100 (from left upper corner) and width = 300, height = 500
 WebElement screenRectangle = robo.findElementByXPath(
-    String.format("//screen[@default=true]//rectangle[@dim='50, 100, 300, 500']", 
+    "//screen[@default=true]//rectangle[@dim='50, 100, 300, 500']");
+File screenRectangleFile = screenRectangle.getScreenshotAs(OutputType.FILE);
 ```
 
 ## Build
