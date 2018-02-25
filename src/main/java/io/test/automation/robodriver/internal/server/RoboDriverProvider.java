@@ -25,12 +25,6 @@ public class RoboDriverProvider implements DriverProvider {
 	}
 
 	@Override
-	@Deprecated
-	public boolean canCreateDriverInstances() {
-		return true;
-	}
-
-	@Override
 	public boolean canCreateDriverInstanceFor(Capabilities capabilities) {
 		return RoboDriver.BROWSER_NAME.equals(capabilities.getCapability(CapabilityType.BROWSER_NAME));
 	}

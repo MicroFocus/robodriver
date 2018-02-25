@@ -1,6 +1,6 @@
 # robodriver
 
-> Note: tested with Selenium 3.6.
+> Note: tested with Selenium 3.9.1
 
 A platform independent WebDriver API implementation to generate native system input events for the 
 purposes of test automation, either locally or on a remote machine.
