@@ -2,10 +2,14 @@
 
 > Note: tested with Selenium 3.9.1
 
-A platform independent WebDriver API implementation to generate native system input events for the 
-purposes of test automation, either locally or on a remote machine.
+A platform independent WebDriver API implementation for native I/O control, either locally or on a remote machine:
 
-The `RemoteWebDriver` interface can be used to find screen devices and to implement mouse and keyboard actions:
+* Screenshots
+* Mouse moves
+* Drag and Drop
+* Keyboard inputs
+* Remoting: Selenium server/grid support
+* Java, Python, C#, JavaScript, Ruby
 
 ```java
 RemoteWebDriver robo = new RoboDriver();
