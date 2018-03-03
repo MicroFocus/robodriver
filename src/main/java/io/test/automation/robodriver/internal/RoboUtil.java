@@ -410,22 +410,30 @@ public class RoboUtil {
 		 */
 	}
 
-	public boolean match(File expectedImage, File imageFile) throws IOException {
-		BufferedImage i1 = ImageIO.read(expectedImage);
-		BufferedImage i2 = ImageIO.read(imageFile);
-		// compare data-buffer objects //
-		if(i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight()) {
-			for (int x = 0; x < i1.getWidth(); x++) {
-				for (int y = 0; y < i1.getHeight(); y++) {
-					if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
-						return false;
-					}
-				}
-			}
-			return true;
-		} else {
+	/**
+	 * Compares images, size of images and color of every pixel must match.
+	 * 
+	 * @param image1
+	 * @param image2
+	 * @return true if images match exactly
+	 * @throws IOException
+	 */
+	public boolean match(File image1, File image2) throws IOException {
+		BufferedImage i1 = ImageIO.read(image1);
+		BufferedImage i2 = ImageIO.read(image2);
+		boolean matchSize = i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight();
+		if (!matchSize) {
 			return false;
 		}
+		// compare pixels
+		for (int x = 0; x < i1.getWidth(); x++) {
+			for (int y = 0; y < i1.getHeight(); y++) {
+				if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 }
