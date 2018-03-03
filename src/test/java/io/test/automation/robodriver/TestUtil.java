@@ -7,6 +7,7 @@ import java.net.URL;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -53,7 +54,8 @@ public class TestUtil {
 	}
 
 	public RemoteWebDriver startChrome(URL url) {
-		return new RemoteWebDriver(url, DesiredCapabilities.chrome());
+		ChromeOptions chromeOptions = new ChromeOptions();
+		return new RemoteWebDriver(url, chromeOptions);
 	}
 	
 	private URL startLocalChrome() throws IOException {
