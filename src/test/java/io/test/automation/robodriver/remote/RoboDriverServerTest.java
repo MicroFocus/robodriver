@@ -4,13 +4,24 @@ import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 
-import org.junit.*;
+import javax.imageio.ImageIO;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -140,6 +151,21 @@ public class RoboDriverServerTest {
 		// then
 		assertEquals("HELLO\nmouse move: from (100,100) to (100,100)\nclick pos: 100,100", textInputField.getAttribute("value").trim());
 	}
+	
+	@Test
+	public void testScreenshot() throws IOException {
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
+
+		// when
+		File screenshotFile = robo.getScreenshotAs(OutputType.FILE);
+		
+		// then
+		BufferedImage screenshot = ImageIO.read(screenshotFile);
+		Color color = new Color(screenshot.getRGB(casp.x + 100, casp.y + 100));
+		assertEquals(0x00, color.getRed());
+		assertEquals(0x00, color.getGreen());
+		assertEquals(0xFF, color.getBlue());
+	}	
 	
 	private String getServerNotRunningInfoText() {
 		return format("Ignored, server '%s' not connectable.", serverURL.toString());
