@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.GeckoDriverService;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -54,7 +58,13 @@ public class TestUtil {
 	}
 
 	public RemoteWebDriver startChrome(URL url) {
+		LoggingPreferences logs = new LoggingPreferences();
+		logs.enable(LogType.DRIVER, Level.FINE);
+		logs.enable(LogType.CLIENT, Level.FINE);
+		logs.enable(LogType.BROWSER, Level.FINE);
+		logs.enable(LogType.SERVER, Level.FINE);
 		ChromeOptions chromeOptions = new ChromeOptions();
+		chromeOptions.setCapability(CapabilityType.LOGGING_PREFS, logs);
 		return new RemoteWebDriver(url, chromeOptions);
 	}
 	

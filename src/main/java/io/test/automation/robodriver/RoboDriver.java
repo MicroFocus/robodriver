@@ -23,7 +23,7 @@ public class RoboDriver extends RemoteWebDriver {
 
 	private static RoboDriverCommandExecutor executor;
 
-	private Process appProcess;
+	private static int ID = 1;
 
 	public RoboDriver() {
 		this(getDesiredCapabilities());
@@ -32,38 +32,15 @@ public class RoboDriver extends RemoteWebDriver {
 	public RoboDriver(Capabilities capabilities) {
 		super(executor = new RoboDriverCommandExecutor(), capabilities);
 		executor.setDriver(this);
+		setSessionId("robodriver-" + Integer.toString(ID++));
 	}
 
 	public static DesiredCapabilities getDesiredCapabilities() {
 		return new DesiredCapabilities(BROWSER_NAME, null, Platform.ANY);
 	}
 
-	@Override
-	protected void startClient(Capabilities desiredCapabilities) {
-		if (desiredCapabilities == null) {
-			return;
-		}
-
-		String app = (String)desiredCapabilities.getCapability(APP);
-		if (app != null) {
-			ProcessBuilder processBuilder = new ProcessBuilder(app.split("\\s+"));
-			try {
-				appProcess = processBuilder.start();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}	
-
-	@Override
-	protected void stopClient() {
-		if (getAppProcess() != null && getAppProcess().isAlive()) {
-			getAppProcess().destroyForcibly();
-		}
-	}
-	
-	public Process getAppProcess() {
-		return appProcess;
+public Process getAppProcess() {
+		return executor.getAppProcess();
 	}
 
 }

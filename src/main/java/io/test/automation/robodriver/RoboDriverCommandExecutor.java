@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.Command;
@@ -38,6 +39,8 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	private RoboDriver driver;
 
 	private RoboUtil roboUtil;
+
+	private Process appProcess;
 			
 	public void setDriver(RoboDriver driver) {
 		this.driver = driver;
@@ -47,11 +50,19 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		roboUtil = new RoboUtil();
 	}
 	
-	// TODO use XPath API instead of simple parsing
 	@Override
 	public Response execute(Command command) throws IOException {
+		try {
+			return executeImpl(command);
+		} catch (Exception e) {
+			e.printStackTrace(); // TODO error handling
+			throw e;
+		}
+	}
+	
+	public Response executeImpl(Command command) throws IOException {
 		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
-		Response response = new Response();
+		Response response = new Response(command.getSessionId());
 		if (DriverCommand.SCREENSHOT.equals(command.getName())) {
 			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
 			String screenshot = roboUtil.getScreenshot(device);
@@ -144,6 +155,8 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
 			}
 		} else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
+			Map<String, ?> parameters = command.getParameters();
+			startClient((Capabilities)parameters.get("desiredCapabilities"));
 			String sessionId = UUID.randomUUID().toString();
 			HashMap<String, Object> values = new HashMap<>();
 			HashMap<String, Object> capabs = new HashMap<>();
@@ -151,14 +164,28 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			values.put("sessionId", sessionId);
 			values.put("capabilities", capabs);
 			capabs.put("robo:screenCount", (new RoboUtil()).getGraphicsDevices().length);
-		    response.setState("success");
-		    response.setStatus(ErrorCodes.SUCCESS);
 		    response.setValue(values);
 		} else if (DriverCommand.ACTIONS.equals(command.getName())) {
 			handleActionsW3C_Selenium_3_4(command);
+		} else if (DriverCommand.CLICK_ELEMENT.equals(command.getName())) { 
+			Map<String, ?> parameters = command.getParameters();
+			String id = parameters.get("id").toString();
+			if (id != null && id.startsWith("rectangle")) {
+				RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
+				rectangle.click();
+			} else if (id != null && id.startsWith("screen")) {
+				RoboScreen screen = RoboScreen.getScreenById(id);
+				screen.click();
+			} else {
+				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
+			}
+		} else if (DriverCommand.QUIT.equals(command.getName())) { 
+			stopClient();
 		} else {
 			LOGGER.log(Level.INFO, ()->String.format("ignored command: '%s' - %s", command.getName(), command.toString()));
 		}
+	    response.setState("success");
+	    response.setStatus(ErrorCodes.SUCCESS);
 		return response;
 	}
 
@@ -219,5 +246,31 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		for (RoboSequenceExecutor roboSequence : sequences) {
 			roboSequence.start();
 		}
+	}
+
+	private void startClient(Capabilities desiredCapabilities) {
+		if (desiredCapabilities == null) {
+			return;
+		}
+	
+		String app = (String)desiredCapabilities.getCapability(RoboDriver.APP);
+		if (app != null) {
+			ProcessBuilder processBuilder = new ProcessBuilder(app.split("\\s+"));
+			try {
+				appProcess = processBuilder.start();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private void stopClient() {
+		if (getAppProcess() != null && getAppProcess().isAlive()) {
+			getAppProcess().destroyForcibly();
+		}
+	}
+
+	public Process getAppProcess() {
+		return appProcess;
 	}
 }

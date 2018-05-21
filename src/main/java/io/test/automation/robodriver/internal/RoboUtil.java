@@ -375,6 +375,41 @@ public class RoboUtil {
 		return result.toString();
 	}
 
+	public void click(GraphicsDevice device, Rectangle rectangle) {
+		Robot robot = getRobot(device);
+		int x = rectangle.x + rectangle.width/2;
+		int y = rectangle.y + rectangle.height/2;
+		robot.mouseMove(x, y);
+		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	}
+
+	/**
+	 * Compares images, size of images and color of every pixel must match.
+	 * 
+	 * @param image1
+	 * @param image2
+	 * @return true if images match exactly
+	 * @throws IOException
+	 */
+	public boolean matchImages(File image1, File image2) throws IOException {
+		BufferedImage i1 = ImageIO.read(image1);
+		BufferedImage i2 = ImageIO.read(image2);
+		boolean matchSize = i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight();
+		if (!matchSize) {
+			return false;
+		}
+		// compare pixels
+		for (int x = 0; x < i1.getWidth(); x++) {
+			for (int y = 0; y < i1.getHeight(); y++) {
+				if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	public void sleep(int millis) {
 		try {
 			Thread.sleep(millis);
@@ -382,6 +417,7 @@ public class RoboUtil {
 			e.printStackTrace();
 		}
 	}	
+	
 	public static void main(String[] args) {
 		RoboUtil roboUtil = new RoboUtil();
 		roboUtil.showScreenDevices();
@@ -408,32 +444,6 @@ public class RoboUtil {
 		 * ...
 		 * http.//www.unicode.org/glossary 
 		 */
-	}
-
-	/**
-	 * Compares images, size of images and color of every pixel must match.
-	 * 
-	 * @param image1
-	 * @param image2
-	 * @return true if images match exactly
-	 * @throws IOException
-	 */
-	public boolean match(File image1, File image2) throws IOException {
-		BufferedImage i1 = ImageIO.read(image1);
-		BufferedImage i2 = ImageIO.read(image2);
-		boolean matchSize = i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight();
-		if (!matchSize) {
-			return false;
-		}
-		// compare pixels
-		for (int x = 0; x < i1.getWidth(); x++) {
-			for (int y = 0; y < i1.getHeight(); y++) {
-				if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 }

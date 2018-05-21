@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -30,6 +31,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import io.test.automation.robodriver.RoboDriver;
 import io.test.automation.robodriver.RoboDriverUtil;
 import io.test.automation.robodriver.TestUtil;
+import io.test.automation.robodriver.internal.RoboUtil;
 
 /**
  * Tests remote robodriver usage.
@@ -165,7 +167,46 @@ public class RoboDriverServerTest {
 		assertEquals(0x00, color.getRed());
 		assertEquals(0x00, color.getGreen());
 		assertEquals(0xFF, color.getBlue());
+	}
+	
+	@Test
+	public void testRectangle() throws IOException {
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
+		
+		// when: retrieve remote rectangle x,y,width,height (x,y = position of left upper corner)
+		WebElement screenRectangle = robo.findElementByXPath(
+				"//screen[@default=true]//rectangle[@dim='10,20,500,300']"); 
+		
+		// then
+		assertEquals(10, screenRectangle.getLocation().x);
+		assertEquals(20, screenRectangle.getLocation().y);
+		assertEquals(500, screenRectangle.getSize().width);
+		assertEquals(300, screenRectangle.getSize().height);
 	}	
+	
+	@Test
+	public void testScreenshotRectangle() throws IOException {
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
+		
+		RoboDriverUtil roboUtil = new RoboDriverUtil();
+		WebElement testImage = browser.findElementById("testimage");
+		Rectangle rect = roboUtil.getScreenRectangleOfBrowserElement(testImage);
+		WebElement screenRectangle = robo.findElementByXPath(
+				String.format("//screen[@default=true]//rectangle[@dim='%d,%d,%d,%d']", 
+						rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight()));
+		
+		// when
+		screenRectangle.click();
+		File screenRectangleFile = screenRectangle.getScreenshotAs(OutputType.FILE);
+		
+		// then
+		assertEqualsImage("test_image_1.png", screenRectangleFile);
+	}
+
+	private void assertEqualsImage(String expectedImage, File imageFile) throws IOException {
+		File expectedImageFile = new File(this.getClass().getClassLoader().getResource(expectedImage).getFile());
+		assertTrue(new RoboUtil().matchImages(expectedImageFile, imageFile));
+	}
 	
 	private String getServerNotRunningInfoText() {
 		return format("Ignored, server '%s' not connectable.", serverURL.toString());

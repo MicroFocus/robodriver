@@ -7,8 +7,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import javax.imageio.ImageIO;
 
@@ -105,11 +103,6 @@ public class RoboDriverScreenshotTest {
 
 	private void assertEqualsImage(String expectedImage, File imageFile) throws IOException {
 		File expectedImageFile = new File(this.getClass().getClassLoader().getResource(expectedImage).getFile());
-		File imageFileCopy = new File(expectedImageFile.getParent(), "screenhsot.png");
-		System.out.println("check image: " + imageFileCopy.getAbsolutePath());
-		Files.copy(imageFile.toPath(), imageFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		RoboUtil roboUtil = new RoboUtil();
-		boolean matchesExact = roboUtil.match(expectedImageFile, imageFileCopy);
-		assertTrue(matchesExact);
+		assertTrue(new RoboUtil().matchImages(expectedImageFile, imageFile));
 	}
 }

@@ -7,7 +7,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.time.Duration;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.Point;

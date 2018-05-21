@@ -1,6 +1,6 @@
 # robodriver
 
-> Note: tested with Selenium 3.9.1
+> Note: requires Selenium 3.12.0 client and server.
 
 A platform independent WebDriver API implementation for native I/O control, either locally or on a remote machine:
 
