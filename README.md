@@ -157,7 +157,7 @@ java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.s
 
 > Note: `robodriver.jar` must be before the Selenium server JAR in the classpath. 
 > This is required because of a needed patch to support W3C Actions protocol for the robodrivers `DriverProvider` implementation
-> and will be obsolete as soon Selenium server supports to configure the needed dialect. The patched line of code can be found in `NewSessionPayload.java`.
+> and will be obsolete as soon Selenium server supports to configure the needed dialect. For the patched code see classes in package`org.openqa.selenium...`.
 
 Portable example in Java:
 
