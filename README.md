@@ -60,7 +60,7 @@ ActionChains(robo)         \
 For drag and drop it is needed to provide a source and target element. For those elements a `//rectangle` of a screen
 can be used, defined by x,y coordinates of its left upper corner, width and height can be zero, for example:
 
-> Note: The origin of **robodriver** `WebElement` objects like screens and rectangles is at the **top left!** 
+> Note: The origin of **robodriver** `WebElement` objects like screens and rectangles is at the **top left-hand** with X coordinates increasing to the right and Y coordinates increasing downwards. 
 > This is different to Selenium DOM elements and W3C Actions, where the origin of a **Browser** `WebElement` is the center of the element.
 
 ```java
@@ -157,7 +157,7 @@ java -cp ./robodriver.jar;./selenium-server-standalone-v.v.jar org.openqa.grid.s
 
 > Note: `robodriver.jar` must be before the Selenium server JAR in the classpath. 
 > This is required because of a needed patch to support W3C Actions protocol for the robodrivers `DriverProvider` implementation
-> and will be obsolete as soon Selenium server supports to configure the needed dialect. For the patched code see classes in package`org.openqa.selenium...`.
+> and will be obsolete as soon Selenium server supports to configure the needed dialect. For the patched code see classes in package `org.openqa.selenium...`.
 
 Portable example in Java:
 

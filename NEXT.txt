@@ -1,4 +1,4 @@
-- implement screenshot for screens and rectangles
+- implement find rectangle by image
 
 - expose wait-for-idle delay in milliseconds as a capability
 

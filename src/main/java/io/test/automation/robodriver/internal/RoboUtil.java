@@ -385,7 +385,7 @@ public class RoboUtil {
 	}
 
 	/**
-	 * Compares images, size of images and color of every pixel must match.
+	 * Compares images exactly, dimensions and color of every pixel must match.
 	 * 
 	 * @param image1
 	 * @param image2

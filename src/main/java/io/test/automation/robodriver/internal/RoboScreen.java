@@ -45,7 +45,7 @@ public class RoboScreen extends RemoteWebElement {
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
-	@Override
+	//@Override (Eclipse issue)
 	public void sendKeys(CharSequence... keysToSend) {
 		LOGGER.log(Level.FINE, ()->String.format("send keys '%s', device=%s", charSequenceToString(keysToSend), device)); 
 		Robot robot = roboUtil.getRobot(device);
