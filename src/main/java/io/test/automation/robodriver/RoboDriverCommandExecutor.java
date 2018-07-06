@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +26,9 @@ import org.openqa.selenium.remote.DriverCommand;
 import org.openqa.selenium.remote.ErrorCodes;
 import org.openqa.selenium.remote.Response;
 
+import io.test.automation.robodriver.internal.ImageUtil;
 import io.test.automation.robodriver.internal.LoggerUtil;
+import io.test.automation.robodriver.internal.RoboImage;
 import io.test.automation.robodriver.internal.RoboScreen;
 import io.test.automation.robodriver.internal.RoboScreenRectangle;
 import io.test.automation.robodriver.internal.RoboSequenceExecutor;
@@ -117,11 +120,18 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				try {
 					screen = RoboScreen.getScreen(screenIdx, driver);
 				} catch (Exception e) {
-					throw new IOException("Cannot find screen with index = '" + screenIdx + "'");
+					throw new NoSuchElementException("cannot find screen with index = '" + screenIdx + "'");
 				}
 			}
-			if (xpath.isRectangle()) {
+			if (xpath.isRectangleByDim()) {
 				Rectangle rectangle = xpath.getRectangle();
+				response.setValue(new RoboScreenRectangle(screen, rectangle));
+			} else if (xpath.isRectangleByImg()) {
+				RoboImage i = new RoboImage(xpath.getImgUriOrFile());
+				Rectangle rectangle = new ImageUtil().findRectangle(screen, i);
+				if (rectangle == null) {
+					throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
+				}
 				response.setValue(new RoboScreenRectangle(screen, rectangle));
 			} else {
 				response.setValue(screen);

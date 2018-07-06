@@ -67,6 +67,14 @@
           context.strokeStyle = '#ff0000';
           context.stroke();
         }
+        
+        var img = document.getElementById('testimage');
+        img.onclick = function(event) { 
+          var x = event.pageX - this.offsetLeft;
+          var y = event.pageY - this.offsetTop;
+          out.value += "image click position (" + x + "," + y +")\n";
+        };
+
     </script>
 
 </body>

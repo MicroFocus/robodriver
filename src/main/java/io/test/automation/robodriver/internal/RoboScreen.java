@@ -3,6 +3,7 @@ package io.test.automation.robodriver.internal;
 import java.awt.GraphicsDevice;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ public class RoboScreen extends RemoteWebElement {
 	private Rectangle rect;
 	private Dimension size;
 	private RoboUtil roboUtil = new RoboUtil();
+
+	private BufferedImage screenImageBuffer;
 	
 
 	private RoboScreen(GraphicsDevice device) {
@@ -197,6 +200,16 @@ public class RoboScreen extends RemoteWebElement {
 	public java.awt.Rectangle getRectAwt() {
 		Rectangle r = getRect();
 		return new java.awt.Rectangle(r.x, r.y, r.width, r.height);
+	}
+
+	public BufferedImage getScreenCapture() {
+		if (screenImageBuffer == null) {
+			GraphicsDevice device = getDevice();
+			Robot robot = roboUtil.getRobot(device);
+			java.awt.Rectangle screenRect = device.getDefaultConfiguration().getBounds();
+			screenImageBuffer = robot.createScreenCapture(screenRect);
+		}
+		return screenImageBuffer;
 	}
 }
 

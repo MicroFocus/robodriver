@@ -38,9 +38,6 @@ public class RoboDriverScreenshotTest {
 		util.navigateToTestPage(browser);
 		WebElement clickArea = browser.findElementById("clickarea");
 		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
-		
-		WebElement clickInfo = browser.findElementById("outputs");
-		assertTrue("click info must be empty", clickInfo.getAttribute("value").isEmpty());
 	}
 	
 	@AfterClass

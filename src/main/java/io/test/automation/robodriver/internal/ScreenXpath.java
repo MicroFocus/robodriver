@@ -8,40 +8,53 @@ import org.openqa.selenium.WebDriverException;
 
 public class ScreenXpath {
 
-	private Pattern xpathScreenElemWithIndex = Pattern.compile("/*screen\\[(\\d+)\\]");
-	private Pattern xpathRectangle = Pattern.compile("/*rectangle\\[@dim='([\\s\\d,]+)'\\]");
+	private final static Pattern xpathScreenElemWithIndex = Pattern.compile("/*screen\\[(\\d+)\\]");
+	private final static Pattern xpathRectangle = Pattern.compile("/*rectangle\\[@dim='([\\s\\d,]+)'\\]");
+	private final static Pattern xpathRectangleImg = Pattern.compile("/*rectangle\\[@img='(.+?)'\\]");
 
-	private String path;
+	private final String path;
+	private String lowerCasePath;
 
 	public ScreenXpath(String path) {
 		if (! path.toLowerCase().contains("screen") && ! path.toLowerCase().contains("rectangle")) {
 			throw new WebDriverException("connot find '" + path + "'");
 		}
 		this.path = path;
+		this.lowerCasePath = path.toLowerCase();
 	}
 
 	public boolean isDefaultScreen() {
-		return path.toLowerCase().contains("default");
+		return lowerCasePath.contains("default");
 	}
 
 	public boolean isRectangle() {
-		return path.toLowerCase().contains("rectangle");
+		return lowerCasePath.contains("rectangle");
+	}
+
+	public boolean isRectangleByDim() {
+		return lowerCasePath.contains("rectangle")
+				&& lowerCasePath.contains("@dim=");
+	}
+
+	public boolean isRectangleByImg() {
+		return lowerCasePath.contains("rectangle")
+				&& lowerCasePath.contains("@img=");
 	}
 
 	public int getScreenIndex() {
-		Matcher matcher = xpathScreenElemWithIndex.matcher(path.toLowerCase());
+		Matcher matcher = xpathScreenElemWithIndex.matcher(getPath().toLowerCase());
 		if (matcher.find()) {
 			try {
 				return Integer.parseInt(matcher.group(1));
 			} catch (Exception e) {
-				throw new WebDriverException("Cannot parse screen index of xpath '" + path+ "'");
+				throw new WebDriverException("Cannot parse screen index of xpath '" + getPath()+ "'");
 			}
 		}
 		return 0;
 	}
 
 	public Rectangle getRectangle() {
-		Matcher matcher = xpathRectangle.matcher(path.toLowerCase());
+		Matcher matcher = xpathRectangle.matcher(getPath().toLowerCase());
 		if (matcher.find()) {
 			try {
 				String group = matcher.group(1);
@@ -55,21 +68,41 @@ public class ScreenXpath {
 				int y = Integer.parseInt(dim[1]);
 				int w = Integer.parseInt(dim[2]);
 				int h = Integer.parseInt(dim[3]);
-				return new Rectangle(x, y, w, h) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String toString() {
-						return String.format("x=%s,y=%s,w=%s,h=%s", this.x, this.y, this.width, this.height);
-					}
-				};
+				return createRectangle(x, y, w, h);
 			} catch (Exception e) {
-				throw new WebDriverException(
-						String.format("Cannot parse dimension of rectangle '%s', expected format: rectangle[@dim='x,y,width,height']", 
-								path));
 			}
 		}
-		return null;
+		throw new WebDriverException(
+				String.format("Cannot parse dimension of rectangle '%s', expected format: rectangle[@dim='x,y,width,height']", 
+						getPath()));
+	}
+
+	public String getImgUriOrFile() {
+		Matcher matcher = xpathRectangleImg.matcher(getPath().toLowerCase());
+		if (matcher.find()) {
+			try {
+				return matcher.group(1);
+			} catch (Exception e) {
+			}
+		}
+		throw new WebDriverException(
+				String.format("Cannot parse image URI of rectangle '%s', expected format: rectangle[@img='http://xxx/img.png']", 
+						getPath()));
+	}
+
+	private Rectangle createRectangle(int x, int y, int w, int h) {
+		return new Rectangle(x, y, w, h) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String toString() {
+				return String.format("x=%s,y=%s,w=%s,h=%s", this.x, this.y, this.width, this.height);
+			}
+		};
+	}
+
+	public String getPath() {
+		return path;
 	}
 
 }

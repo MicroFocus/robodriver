@@ -2,7 +2,6 @@ package io.test.automation.robodriver.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -42,8 +41,10 @@ public class ScreenXpathTest {
 		assertTrue(xpath.isRectangle());	
 		xpath = new ScreenXpath("//screen//rectangle");
 		assertTrue(xpath.isRectangle());	
-		xpath = new ScreenXpath("/screen/rectangle[@dim'1,1,1,1']");
-		assertTrue(xpath.isRectangle());	
+		xpath = new ScreenXpath("/screen/rectangle[@dim='1,1,1,1']");
+		assertTrue(xpath.isRectangleByDim());	
+		xpath = new ScreenXpath("/screen/rectangle[@img='xxxx']");
+		assertTrue(xpath.isRectangleByImg());	
 		xpath = new ScreenXpath("/screen/RECTANGLE");
 		assertTrue(xpath.isRectangle());	
 		xpath = new ScreenXpath("/screen");
@@ -84,8 +85,6 @@ public class ScreenXpathTest {
 		assertEquals("x=11,y=21,w=31,h=41", xpath.getRectangle().toString());
 		xpath = new ScreenXpath("/screen[0]/rectangle[@DIM='11,  21,	31, 41']");
 		assertEquals("x=11,y=21,w=31,h=41", xpath.getRectangle().toString());
-		xpath = new ScreenXpath("//rectangle");
-		assertNull(xpath.getRectangle());
 	}
 	
 	@Test(expected = WebDriverException.class)
