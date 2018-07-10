@@ -8,6 +8,7 @@ A platform independent WebDriver API implementation for native I/O control, eith
 * Mouse moves
 * Drag and Drop
 * Keyboard inputs
+* Find and click image on screen
 * Remoting: Selenium server/grid support
 * Java, Python, C#, JavaScript, Ruby
 
