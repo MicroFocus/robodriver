@@ -66,148 +66,192 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	public Response executeImpl(Command command) throws IOException {
 		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
 		Response response = new Response(command.getSessionId());
-		if (DriverCommand.SCREENSHOT.equals(command.getName())) {
-			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
-			String screenshot = roboUtil.getScreenshot(device);
-			response.setValue(screenshot);
-		} else if (DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT.equals(command.getName())) { 
-			GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
-			Robot robot = roboUtil.getRobot(device);
-			CharSequence[] keysToSend = (CharSequence[]) command.getParameters().get("value");
-			roboUtil.sendKeys(robot, keysToSend);
-		} else if (DriverCommand.MOUSE_UP.equals(command.getName())) {
-			GraphicsDevice device = getDevice(command.getParameters());
-			roboUtil.mouseUp(device, 1);
-		} else if (DriverCommand.MOUSE_DOWN.equals(command.getName())) {
-			GraphicsDevice device = getDevice(command.getParameters());
-			roboUtil.mouseDown(device, 1);
-		} else if (DriverCommand.MOVE_TO.equals(command.getName())) {
-			Map<String, ?> parameters = command.getParameters();
-			if (parameters.containsKey("element")) {
-				String deviceId = (String) parameters.get("element");
-				GraphicsDevice device = roboUtil.getDeviceById(deviceId);
-				Robot robot = roboUtil.getRobot(device);
-				if (parameters.containsKey("xoffset")) {
-					int xoffset =  new BigDecimal((Long)parameters.get("xoffset")).intValueExact();
-					int yoffset = new BigDecimal((Long)parameters.get("yoffset")).intValueExact();
-					robot.mouseMove(xoffset, yoffset);
-				} else {
-					// move to center
-					Rectangle bounds = device.getDefaultConfiguration().getBounds();
-					robot.mouseMove((int) bounds.getCenterX(), (int) bounds.getCenterY());
-				}
-			} else if (parameters.containsKey("xoffset")) {
-				Robot robot = roboUtil.getRobot(roboUtil.getDefaultDevice());
-				Point location = MouseInfo.getPointerInfo().getLocation();
-				Long xoffset = (Long) parameters.get("xoffset");
-				Long yoffset = (Long) parameters.get("yoffset");
-				int x = location.x + new BigDecimal(xoffset).intValueExact();
-				int y = location.y + new BigDecimal(yoffset).intValueExact();
-				robot.mouseMove(x, y);
-			}
-		} else if (DriverCommand.FIND_ELEMENTS.equals(command.getName())) {
-			List<RoboScreen> allElements = RoboScreen.getAllScreens(driver);
-			response.setValue(allElements);
-		} else if (DriverCommand.FIND_ELEMENT.equals(command.getName())) {
-			Map<String, ?> parameters = command.getParameters();
-			String value = parameters.get("value").toString().toLowerCase();
-			ScreenXpath xpath = new ScreenXpath(value);
-			RoboScreen screen;
-			if (xpath.isDefaultScreen()) {
-				screen = RoboScreen.getDefaultScreen(driver);
-			} else {
-				int screenIdx = xpath.getScreenIndex();
-				try {
-					screen = RoboScreen.getScreen(screenIdx, driver);
-				} catch (Exception e) {
-					throw new NoSuchElementException("cannot find screen with index = '" + screenIdx + "'");
-				}
-			}
-			if (xpath.isRectangleByDim()) {
-				Rectangle rectangle = xpath.getRectangle();
-				response.setValue(new RoboScreenRectangle(screen, rectangle));
-			} else if (xpath.isRectangleByImg()) {
-				RoboImage i = new RoboImage(xpath.getImgUriOrFile());
-				Rectangle rectangle = new ImageUtil().findRectangle(screen, i);
-				if (rectangle == null) {
-					throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
-				}
-				response.setValue(new RoboScreenRectangle(screen, rectangle));
-			} else {
-				response.setValue(screen);
-			}
-		} else if (DriverCommand.FIND_CHILD_ELEMENT.equals(command.getName())) {
-			Map<String, ?> parameters = command.getParameters();
-			String id = parameters.get("id").toString();
-			RoboScreen screen = RoboScreen.getScreenById(id);
-			assert "xpath".equals(parameters.get("using").toString().toLowerCase());
-			String value = parameters.get("value").toString().toLowerCase();
-			ScreenXpath xpath = new ScreenXpath(value);
-			if (! xpath.isRectangle()) {
-				throw new WebDriverException("cannot find child '" + value + "' from device ID '" + id + "'");
-			}
-			Rectangle rectangle = xpath.getRectangle();
-			if (rectangle == null) {
-				rectangle = screen.getRectAwt();
-			}
-			response.setValue(new RoboScreenRectangle(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height));
-		} else if (DriverCommand.ELEMENT_SCREENSHOT.equals(command.getName())) {
-			Map<String, ?> parameters = command.getParameters();
-			String id = parameters.get("id").toString();
-			if (id != null && id.startsWith("rectangle")) {
-				RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
-				response.setValue(rectangle.getScreenshot());
-			} else if (id != null && id.startsWith("screen")) {
-				RoboScreen screen = RoboScreen.getScreenById(id);
-				String screenshot = roboUtil.getScreenshot(screen.getDevice());
-				response.setValue(screenshot);
-			} else {
-				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
-			}
-		} else if (DriverCommand.NEW_SESSION.equals(command.getName())) {
-			Map<String, ?> parameters = command.getParameters();
-			startClient((Capabilities)parameters.get("desiredCapabilities"));
-			String sessionId = UUID.randomUUID().toString();
-			HashMap<String, Object> values = new HashMap<>();
-			HashMap<String, Object> capabs = new HashMap<>();
-			values.put("state", "success");
-			values.put("sessionId", sessionId);
-			values.put("capabilities", capabs);
-			capabs.put("robo:screenCount", (new RoboUtil()).getGraphicsDevices().length);
-		    response.setValue(values);
-		} else if (DriverCommand.ACTIONS.equals(command.getName())) {
-			handleActionsW3C_Selenium_3_4(command);
-		} else if (DriverCommand.CLICK_ELEMENT.equals(command.getName())) { 
-			Map<String, ?> parameters = command.getParameters();
-			String id = parameters.get("id").toString();
-			if (id != null && id.startsWith("rectangle")) {
-				RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
-				rectangle.click();
-			} else if (id != null && id.startsWith("screen")) {
-				RoboScreen screen = RoboScreen.getScreenById(id);
-				screen.click();
-			} else {
-				throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
-			}
-		} else if (DriverCommand.QUIT.equals(command.getName())) { 
-			stopClient();
-		} else {
+		switch(command.getName()) {
+		case DriverCommand.SCREENSHOT:
+			execScreenshot(response);
+			break;
+		case DriverCommand.SEND_KEYS_TO_ACTIVE_ELEMENT:
+			execSendKeysToActiveElement(command);
+			break;
+		case DriverCommand.MOUSE_UP:
+			execMouseUp(command);
+			break;
+		case DriverCommand.MOUSE_DOWN:
+			execMouseDown(command);
+			break;
+		case DriverCommand.MOVE_TO:
+			execMoveTo(command);
+			break;
+		case DriverCommand.FIND_ELEMENTS:
+			execFindElements(response);
+			break;
+		case DriverCommand.FIND_ELEMENT:
+			execFindElement(command, response);
+			break;
+		case DriverCommand.FIND_CHILD_ELEMENT:
+			execFindChildElement(command, response);
+			break;
+		case DriverCommand.ELEMENT_SCREENSHOT:
+			execElementScreenshot(command, response);
+			break;
+		case DriverCommand.NEW_SESSION:
+			execNewSession(command, response);
+			break;
+		case DriverCommand.ACTIONS:
+			execActionsW3C(command);
+			break;
+		case DriverCommand.CLICK_ELEMENT: 
+			execClickElement(command);
+			break;
+		case DriverCommand.QUIT: 
+			execQuit();
+			break;
+		default:
 			LOGGER.log(Level.INFO, ()->String.format("ignored command: '%s' - %s", command.getName(), command.toString()));
 		}
-	    response.setState("success");
-	    response.setStatus(ErrorCodes.SUCCESS);
+		response.setState("success");
+		response.setStatus(ErrorCodes.SUCCESS);
 		return response;
 	}
 
-	private GraphicsDevice getDevice(Map<String, ?> parameters) {
-		if (parameters.containsKey("element")) {
-			return roboUtil.getDeviceById((String)parameters.get("element"));
+	private void execClickElement(Command command) {
+		Map<String, ?> parameters = command.getParameters();
+		String id = parameters.get("id").toString();
+		if (id != null && id.startsWith("rectangle")) {
+			RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
+			rectangle.click();
+		} else if (id != null && id.startsWith("screen")) {
+			RoboScreen screen = RoboScreen.getScreenById(id);
+			screen.click();
 		} else {
-			return roboUtil.getDefaultDevice();
+			throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
 		}
 	}
 
-	private void handleActionsW3C_Selenium_3_4(Command command) {
+	private void execNewSession(Command command, Response response) {
+		Map<String, ?> parameters = command.getParameters();
+		startClient((Capabilities)parameters.get("desiredCapabilities"));
+		String sessionId = UUID.randomUUID().toString();
+		HashMap<String, Object> values = new HashMap<>();
+		HashMap<String, Object> capabs = new HashMap<>();
+		values.put("state", "success");
+		values.put("sessionId", sessionId);
+		values.put("capabilities", capabs);
+		capabs.put("robo:screenCount", (new RoboUtil()).getGraphicsDevices().length);
+		response.setValue(values);
+	}
+
+	private void execElementScreenshot(Command command, Response response) throws IOException {
+		Map<String, ?> parameters = command.getParameters();
+		String id = parameters.get("id").toString();
+		if (id != null && id.startsWith("rectangle")) {
+			RoboScreenRectangle rectangle = RoboScreenRectangle.get(id);
+			response.setValue(rectangle.getScreenshot());
+		} else if (id != null && id.startsWith("screen")) {
+			RoboScreen screen = RoboScreen.getScreenById(id);
+			String screenshot = roboUtil.getScreenshot(screen.getDevice());
+			response.setValue(screenshot);
+		} else {
+			throw new WebDriverException(String.format("invalid id '%s', cannot run command '%s'", id, command));
+		}
+	}
+
+	private void execFindChildElement(Command command, Response response) {
+		Map<String, ?> parameters = command.getParameters();
+		String id = parameters.get("id").toString();
+		RoboScreen screen = RoboScreen.getScreenById(id);
+		assert "xpath".equals(parameters.get("using").toString().toLowerCase());
+		String value = parameters.get("value").toString().toLowerCase();
+		ScreenXpath xpath = new ScreenXpath(value);
+		if (! xpath.isRectangle()) {
+			throw new WebDriverException("cannot find child '" + value + "' from device ID '" + id + "'");
+		}
+		Rectangle rectangle = xpath.getRectangle();
+		if (rectangle == null) {
+			rectangle = screen.getRectAwt();
+		}
+		response.setValue(new RoboScreenRectangle(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height));
+	}
+
+	private void execFindElement(Command command, Response response) {
+		Map<String, ?> parameters = command.getParameters();
+		String value = parameters.get("value").toString().toLowerCase();
+		ScreenXpath xpath = new ScreenXpath(value);
+		RoboScreen screen;
+		if (xpath.isDefaultScreen()) {
+			screen = RoboScreen.getDefaultScreen(driver);
+		} else {
+			int screenIdx = xpath.getScreenIndex();
+			try {
+				screen = RoboScreen.getScreen(screenIdx, driver);
+			} catch (Exception e) {
+				throw new NoSuchElementException("cannot find screen with index = '" + screenIdx + "'");
+			}
+		}
+		if (xpath.isRectangleByDim()) {
+			Rectangle rectangle = xpath.getRectangle();
+			response.setValue(new RoboScreenRectangle(screen, rectangle));
+		} else if (xpath.isRectangleByImg()) {
+			RoboImage i = new RoboImage(xpath.getImgUriOrFile());
+			Rectangle rectangle = new ImageUtil().findRectangle(screen, i);
+			if (rectangle == null) {
+				throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
+			}
+			response.setValue(new RoboScreenRectangle(screen, rectangle));
+		} else {
+			response.setValue(screen);
+		}
+	}
+
+	private void execFindElements(Response response) {
+		List<RoboScreen> allElements = RoboScreen.getAllScreens(driver);
+		response.setValue(allElements);
+	}
+
+	private void execMoveTo(Command command) {
+		Map<String, ?> parameters = command.getParameters();
+		if (parameters.containsKey("element")) {
+			String deviceId = (String) parameters.get("element");
+			GraphicsDevice device = roboUtil.getDeviceById(deviceId);
+			Robot robot = roboUtil.getRobot(device);
+			if (parameters.containsKey("xoffset")) {
+				int xoffset =  new BigDecimal((Long)parameters.get("xoffset")).intValueExact();
+				int yoffset = new BigDecimal((Long)parameters.get("yoffset")).intValueExact();
+				robot.mouseMove(xoffset, yoffset);
+			} else {
+				// move to center
+				Rectangle bounds = device.getDefaultConfiguration().getBounds();
+				robot.mouseMove((int) bounds.getCenterX(), (int) bounds.getCenterY());
+			}
+		} else if (parameters.containsKey("xoffset")) {
+			Robot robot = roboUtil.getRobot(roboUtil.getDefaultDevice());
+			Point location = MouseInfo.getPointerInfo().getLocation();
+			Long xoffset = (Long) parameters.get("xoffset");
+			Long yoffset = (Long) parameters.get("yoffset");
+			int x = location.x + new BigDecimal(xoffset).intValueExact();
+			int y = location.y + new BigDecimal(yoffset).intValueExact();
+			robot.mouseMove(x, y);
+		}
+	}
+
+	private void execMouseDown(Command command) {
+		GraphicsDevice device = getDevice(command.getParameters());
+		roboUtil.mouseDown(device, 1);
+	}
+
+	private void execMouseUp(Command command) {
+		GraphicsDevice device = getDevice(command.getParameters());
+		roboUtil.mouseUp(device, 1);
+	}
+
+	private void execSendKeysToActiveElement(Command command) {
+		GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
+		Robot robot = roboUtil.getRobot(device);
+		CharSequence[] keysToSend = (CharSequence[]) command.getParameters().get("value");
+		roboUtil.sendKeys(robot, keysToSend);
+	}
+
+	private void execActionsW3C(Command command) {
 		try {
 			Object actionsObject = command.getParameters().get("actions");
 			if (actionsObject instanceof Collection<?>) {
@@ -220,6 +264,26 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private void execQuit() {
+		if (getAppProcess() != null && getAppProcess().isAlive()) {
+			getAppProcess().destroyForcibly();
+		}
+	}
+
+	private void execScreenshot(Response response) throws IOException {
+		GraphicsDevice device = roboUtil.getDefaultDevice(); // TODO use active screen
+		String screenshot = roboUtil.getScreenshot(device);
+		response.setValue(screenshot);
+	}
+
+	private GraphicsDevice getDevice(Map<String, ?> parameters) {
+		if (parameters.containsKey("element")) {
+			return roboUtil.getDeviceById((String)parameters.get("element"));
+		} else {
+			return roboUtil.getDefaultDevice();
 		}
 	}
 
@@ -271,12 +335,6 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		}
-	}
-
-	private void stopClient() {
-		if (getAppProcess() != null && getAppProcess().isAlive()) {
-			getAppProcess().destroyForcibly();
 		}
 	}
 
