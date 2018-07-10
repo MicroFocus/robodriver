@@ -175,7 +175,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 
 	private void execFindElement(Command command, Response response) {
 		Map<String, ?> parameters = command.getParameters();
-		String value = parameters.get("value").toString().toLowerCase();
+		String value = parameters.get("value").toString();
 		ScreenXpath xpath = new ScreenXpath(value);
 		RoboScreen screen;
 		if (xpath.isDefaultScreen()) {

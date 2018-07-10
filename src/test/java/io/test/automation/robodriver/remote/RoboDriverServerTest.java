@@ -46,9 +46,11 @@ public class RoboDriverServerTest {
 	private static RemoteWebDriver browser;
 	private static Point casp; // click area screen position of left upper corner
 
-	private static RemoteWebDriver robo;
+	private static RemoteWebDriver remoteRobo;
 
 	private static boolean serverRunning;
+	private static WebElement testImageInWebPage;
+	private static WebElement testInputOutputField;
 
 	private static boolean aliveCheck(URL remoteAddress) throws IOException {
 		try (Socket s = new Socket()) {
@@ -72,8 +74,9 @@ public class RoboDriverServerTest {
 		util.navigateToTestPage(browser);
 		WebElement clickArea = browser.findElementById("clickarea");
 		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
+		testImageInWebPage = browser.findElementById("testimage");
 		
-		WebElement testInputOutputField = browser.findElementById("outputs");
+		testInputOutputField = browser.findElementById("outputs");
 		assertTrue("test io info must be empty", testInputOutputField.getAttribute("value").isEmpty());
 	}
 
@@ -85,13 +88,13 @@ public class RoboDriverServerTest {
 		util.clearInfoTextField(browser);
 		
 		// Create a RemoteWebDriver instance to use a remote RoboDriver Selnium server.
-		robo = new RemoteWebDriver(remoteAddress, RoboDriver.getDesiredCapabilities());
+		remoteRobo = new RemoteWebDriver(remoteAddress, RoboDriver.getDesiredCapabilities());
 	}
 
 	@After
 	public void onAfterTest() {
-		if (robo != null) {
-			robo.quit();
+		if (remoteRobo != null) {
+			remoteRobo.quit();
 		}
 	}
 	
@@ -109,7 +112,7 @@ public class RoboDriverServerTest {
 		textInputField.click(); // set focus to input field
 		
 		// when
-		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		WebElement screen = remoteRobo.findElementByXPath("//screen[@default=true]");
 		screen.sendKeys("hello");
 		
 		// then
@@ -123,7 +126,7 @@ public class RoboDriverServerTest {
 		textInputField.click(); // set focus to input field
 
 		// when
-		new Actions(robo)
+		new Actions(remoteRobo)
 			.keyDown(Keys.SHIFT)
 			.sendKeys("hello")
 			.keyUp(Keys.SHIFT)
@@ -140,8 +143,8 @@ public class RoboDriverServerTest {
 		textInputField.click(); // set focus to input field
 		
 		// when
-		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
+		WebElement screen = remoteRobo.findElementByXPath("//screen[@default=true]");
+		new Actions(remoteRobo)
 			.keyDown(Keys.SHIFT)
 			.sendKeys("hello")
 			.keyUp(Keys.SHIFT)
@@ -159,7 +162,7 @@ public class RoboDriverServerTest {
 		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 
 		// when
-		File screenshotFile = robo.getScreenshotAs(OutputType.FILE);
+		File screenshotFile = remoteRobo.getScreenshotAs(OutputType.FILE);
 		
 		// then
 		BufferedImage screenshot = ImageIO.read(screenshotFile);
@@ -174,7 +177,7 @@ public class RoboDriverServerTest {
 		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		
 		// when: retrieve remote rectangle x,y,width,height (x,y = position of left upper corner)
-		WebElement screenRectangle = robo.findElementByXPath(
+		WebElement screenRectangle = remoteRobo.findElementByXPath(
 				"//screen[@default=true]//rectangle[@dim='10,20,500,300']"); 
 		
 		// then
@@ -191,17 +194,33 @@ public class RoboDriverServerTest {
 		RoboDriverUtil roboUtil = new RoboDriverUtil();
 		WebElement testImage = browser.findElementById("testimage");
 		Rectangle rect = roboUtil.getScreenRectangleOfBrowserElement(testImage);
-		WebElement screenRectangle = robo.findElementByXPath(
+		WebElement screenRectangle = remoteRobo.findElementByXPath(
 				String.format("//screen[@default=true]//rectangle[@dim='%d,%d,%d,%d']", 
 						rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight()));
 		
 		// when
-		screenRectangle.click();
 		File screenRectangleFile = screenRectangle.getScreenshotAs(OutputType.FILE);
 		
 		// then
 		assertEqualsImage("test_image_1.png", screenRectangleFile);
 	}
+	
+	@Test
+	public void testFindImageOnScreenByDataUri() throws IOException {
+		RoboDriverUtil roboUtil = new RoboDriverUtil();
+		Rectangle expectedImageRect = roboUtil.getScreenRectangleOfBrowserElement(testImageInWebPage);
+		
+		// when (data URI represents image: scr/test/resources/test_image_1.png
+		WebElement foundImageRectangle = remoteRobo.findElementByXPath(
+				String.format("//screen[@default=true]//rectangle[@img='%s']", 
+						"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAClSURBVDhPpdFbDoUgDEXR4zz0T+c/Mp2CeoglRUupsBMvmktXfEwAzrt7ASZedfSM41i2rHEZap/XtGZpBBWMFU4PWmKG8QfVGDNBFkHfGKuCzEMtjLkgs/6sYawJMr3Bw1gIZNzUwlgYJBbZGAL1nbU2N0HrMb0BF/TeWW2oCsY+wHfQBCOY9B7+gH8wSQMJfM67MKlA+TOCSYJCY+mWOw4JwHkBGJ9CpvqlAE0AAAAASUVORK5CYII="));
+		foundImageRectangle.click();
+		
+		// then
+		assertEquals(util.toString(expectedImageRect), util.toString(foundImageRectangle.getRect()));
+		assertEquals("image click position (10,10)", testInputOutputField.getAttribute("value").trim());
+	}
+	
 
 	private void assertEqualsImage(String expectedImage, File imageFile) throws IOException {
 		File expectedImageFile = new File(this.getClass().getClassLoader().getResource(expectedImage).getFile());

@@ -1,0 +1,4 @@
+Thanks to GitHub user 'ooxi' and the data URI parser implementation in Java:
+  https://github.com/ooxi/jdatauri
+  violetland@mail.ru
+  See class: com.github.ooxi.jdatauri.DataUri

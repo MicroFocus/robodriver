@@ -61,7 +61,7 @@ public class RoboDriverFindImageTest {
 	}
 	
 	@Test
-	public void testFindImageOnScreenByUri() throws IOException {
+	public void testFindImageOnScreenByFileUri() throws IOException {
 		RoboDriverUtil roboUtil = new RoboDriverUtil();
 		Rectangle expectedImageRect = roboUtil.getScreenRectangleOfBrowserElement(testImageInWebPage);
 		
@@ -71,9 +71,23 @@ public class RoboDriverFindImageTest {
 						testImageToFind.toURI()));
 		
 		// then
-		assertEquals(toString(expectedImageRect), toString(foundImageRectangle.getRect()));
+		assertEquals(util.toString(expectedImageRect), util.toString(foundImageRectangle.getRect()));
 	}
 
+	@Test
+	public void testFindImageOnScreenByDataUri() throws IOException {
+		RoboDriverUtil roboUtil = new RoboDriverUtil();
+		Rectangle expectedImageRect = roboUtil.getScreenRectangleOfBrowserElement(testImageInWebPage);
+		
+		// when (data URI represents image: scr/test/resources/test_image_1.png
+		WebElement foundImageRectangle = robo.findElementByXPath(
+				String.format("//screen[@default=true]//rectangle[@img='%s']", 
+						"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAClSURBVDhPpdFbDoUgDEXR4zz0T+c/Mp2CeoglRUupsBMvmktXfEwAzrt7ASZedfSM41i2rHEZap/XtGZpBBWMFU4PWmKG8QfVGDNBFkHfGKuCzEMtjLkgs/6sYawJMr3Bw1gIZNzUwlgYJBbZGAL1nbU2N0HrMb0BF/TeWW2oCsY+wHfQBCOY9B7+gH8wSQMJfM67MKlA+TOCSYJCY+mWOw4JwHkBGJ9CpvqlAE0AAAAASUVORK5CYII="));
+		
+		// then
+		assertEquals(util.toString(expectedImageRect), util.toString(foundImageRectangle.getRect()));
+	}
+	
 	@Test
 	public void testClickToCenterOfImageOnScreenByUri() throws IOException {
 		// when
@@ -91,9 +105,5 @@ public class RoboDriverFindImageTest {
 		robo.findElementByXPath(
 				String.format("//screen[@default=true]//rectangle[@img='%s']", 
 						testImageNotToFind.toURI()));
-	}
-	
-	private String toString(Rectangle r) {
-		return String.format("x=%d, y=%d, width=%d, height=%d", r.x, r.y, r.width, r.height);
 	}
 }

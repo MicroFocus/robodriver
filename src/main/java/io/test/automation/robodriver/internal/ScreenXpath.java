@@ -78,7 +78,7 @@ public class ScreenXpath {
 	}
 
 	public String getImgUriOrFile() {
-		Matcher matcher = xpathRectangleImg.matcher(getPath().toLowerCase());
+		Matcher matcher = xpathRectangleImg.matcher(getPath());
 		if (matcher.find()) {
 			try {
 				return matcher.group(1);

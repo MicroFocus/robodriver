@@ -358,7 +358,7 @@ public class RoboUtil {
 		if (vk == null) {
 			return null;
 		}
-		return new Character((char)vk.intValue()).toString();
+		return Character.valueOf((char)vk.intValue()).toString();
 	}
 	
 	public String getScreenshot(GraphicsDevice device) throws IOException {
@@ -395,6 +395,10 @@ public class RoboUtil {
 	public boolean matchImages(File image1, File image2) throws IOException {
 		BufferedImage i1 = ImageIO.read(image1);
 		BufferedImage i2 = ImageIO.read(image2);
+		return matchImages(i1, i2);
+	}
+
+	public boolean matchImages(BufferedImage i1, BufferedImage i2) {
 		boolean matchSize = i1.getWidth() == i2.getWidth() && i1.getHeight() == i2.getHeight();
 		if (!matchSize) {
 			return false;
@@ -402,7 +406,7 @@ public class RoboUtil {
 		// compare pixels
 		for (int x = 0; x < i1.getWidth(); x++) {
 			for (int y = 0; y < i1.getHeight(); y++) {
-				if (i1.getRGB(x,y) != i2.getRGB(x, y)) {
+				if (i1.getRGB(x,y) != i2.getRGB(x, y)) { 
 					return false;
 				}
 			}

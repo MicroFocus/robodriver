@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -107,6 +108,10 @@ public class TestUtil {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public String toString(Rectangle r) {
+		return String.format("x=%d, y=%d, width=%d, height=%d", r.x, r.y, r.width, r.height);
 	}
 
 	public static void main(String[] args) {

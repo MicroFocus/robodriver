@@ -93,6 +93,33 @@ WebElement screenRectangle = robo.findElementByXPath(
 File screenRectangleFile = screenRectangle.getScreenshotAs(OutputType.FILE);
 ```
 
+## Find and Click Image on Screen
+
+To find and click for example to an icon `//rectangle`
+supports also URIs to find an image on the screen.
+
+#### Find Image by data URI
+
+This is convenient in remote scenarios.
+
+```java
+WebElement image = remoteRobo.findElementByXPath(
+  String.format("//screen[@default=true]//rectangle[@img='%s'], 
+    "data:image/png;base64,iVBORw0KGgoA...CYII="));
+image.click();
+```
+
+#### Find Image by file URI
+
+```java
+File imageToFind = new File("images/send-mail.png");
+
+WebElement image = remoteRobo.findElementByXPath(
+  String.format("//screen[@default=true]//rectangle[@img='%s']", 
+    imageToFind.toURI());
+image.click();
+```
+
 ## Build
 
 Easiest way to build robodriver.jar is using Maven and build file `pom.xml`, install Maven from 
