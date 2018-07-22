@@ -105,7 +105,7 @@ This is convenient in remote scenarios.
 
 ```java
 WebElement image = remoteRobo.findElementByXPath(
-  String.format("//screen[@default=true]//rectangle[@img='%s'], 
+  String.format("//screen[@default=true]//rectangle[@img='%s']", 
     "data:image/png;base64,iVBORw0KGgoA...CYII="));
 image.click();
 ```
