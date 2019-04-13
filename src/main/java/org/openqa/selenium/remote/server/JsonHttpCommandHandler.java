@@ -1,4 +1,4 @@
-// PATCH: find in this file 'robodriver' to see changes
+// PATCH: see usage of org.openqa.selenium.remote.server.handler.GetElementScreenshot
 
 // Licensed to the Software Freedom Conservancy (SFC) under one
 // or more contributor license agreements.  See the NOTICE file
@@ -21,11 +21,11 @@ package org.openqa.selenium.remote.server;
 
 import static org.openqa.selenium.remote.DriverCommand.*;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import org.openqa.selenium.UnsupportedCommandException;
@@ -150,221 +150,229 @@ import org.openqa.selenium.remote.server.rest.ResultConfig;
 
 public class JsonHttpCommandHandler {
 
-  private final DriverSessions sessions;
-  private final Logger log;
-  private final Set<CommandCodec<HttpRequest>> commandCodecs;
-  private final ResponseCodec<HttpResponse> responseCodec;
-  private final Map<String, ResultConfig> configs = new LinkedHashMap<>();
-  private final ErrorCodes errorCodes = new ErrorCodes();
+	private final DriverSessions sessions;
+	private final Logger log;
+	private final Set<CommandCodec<HttpRequest>> commandCodecs;
+	private final ResponseCodec<HttpResponse> responseCodec;
+	private final Map<String, ResultConfig> configs = new LinkedHashMap<>();
+	private final ErrorCodes errorCodes = new ErrorCodes();
 
-  public JsonHttpCommandHandler(DriverSessions sessions, Logger log) {
-    this.sessions = sessions;
-    this.log = log;
-    this.commandCodecs = new LinkedHashSet<>();
-    this.commandCodecs.add(new JsonHttpCommandCodec());
-    this.commandCodecs.add(new W3CHttpCommandCodec());
-    this.responseCodec = new JsonHttpResponseCodec();
-    setUpMappings();
-  }
+	public JsonHttpCommandHandler(DriverSessions sessions, Logger log) {
+		this.sessions = sessions;
+		this.log = log;
+		this.commandCodecs = new LinkedHashSet<>();
+		this.commandCodecs.add(new JsonHttpCommandCodec());
+		this.commandCodecs.add(new W3CHttpCommandCodec());
+		this.responseCodec = new JsonHttpResponseCodec();
+		setUpMappings();
+	}
 
-  public void addNewMapping(
-      String commandName,
-      Class<? extends RestishHandler<?>> implementationClass) {
-    ResultConfig config = new ResultConfig(commandName, implementationClass, sessions, log);
-    configs.put(commandName, config);
-  }
+	public void addNewMapping(String commandName, Supplier<RestishHandler<?>> factory) {
+		ResultConfig config = new ResultConfig(commandName, factory, sessions, log);
+		configs.put(commandName, config);
+	}
 
-  public void handleRequest(HttpRequest request, HttpResponse resp) throws IOException {
-    LoggingManager.perSessionLogHandler().clearThreadTempLogs();
-    log.fine(String.format("Handling: %s %s", request.getMethod(), request.getUri()));
+	public void addNewMapping(String commandName, RequiresAllSessions factory) {
+		ResultConfig config = new ResultConfig(commandName, factory, sessions, log);
+		configs.put(commandName, config);
+	}
 
-    Command command = null;
-    Response response;
-    try {
-      command = decode(request);
-      ResultConfig config = configs.get(command.getName());
-      if (config == null) {
-        throw new UnsupportedCommandException();
-      }
-      response = config.handle(command);
-      log.fine(String.format("Finished: %s %s", request.getMethod(), request.getUri()));
-    } catch (Exception e) {
-      log.fine(String.format("Error on: %s %s", request.getMethod(), request.getUri()));
-      response = new Response();
-      response.setStatus(errorCodes.toStatusCode(e));
-      response.setState(errorCodes.toState(response.getStatus()));
-      response.setValue(e);
+	public void addNewMapping(String commandName, RequiresSession factory) {
+		ResultConfig config = new ResultConfig(commandName, factory, sessions, log);
+		configs.put(commandName, config);
+	}
 
-      if (command != null && command.getSessionId() != null) {
-        response.setSessionId(command.getSessionId().toString());
-      }
-    }
+	public void handleRequest(HttpRequest request, HttpResponse resp) {
+		LoggingManager.perSessionLogHandler().clearThreadTempLogs();
+		log.fine(String.format("Handling: %s %s", request.getMethod(), request.getUri()));
 
-    PerSessionLogHandler handler = LoggingManager.perSessionLogHandler();
-    if (response.getSessionId() != null) {
-      handler.attachToCurrentThread(new SessionId(response.getSessionId()));
-    }
-    try {
-      responseCodec.encode(() -> resp, response);
-    } finally {
-      handler.detachFromCurrentThread();
-    }
-  }
+		Command command = null;
+		Response response;
+		try {
+			command = decode(request);
+			ResultConfig config = configs.get(command.getName());
+			if (config == null) {
+				throw new UnsupportedCommandException();
+			}
+			response = config.handle(command);
+			log.fine(String.format("Finished: %s %s", request.getMethod(), request.getUri()));
+		} catch (Exception e) {
+			log.fine(String.format("Error on: %s %s", request.getMethod(), request.getUri()));
+			response = new Response();
+			response.setStatus(errorCodes.toStatusCode(e));
+			response.setState(errorCodes.toState(response.getStatus()));
+			response.setValue(e);
 
-  private Command decode(HttpRequest request) {
-    UnsupportedCommandException lastException = null;
-    for (CommandCodec<HttpRequest> codec : commandCodecs) {
-      try {
-        return codec.decode(request);
-      } catch (UnsupportedCommandException e) {
-        lastException = e;
-      }
-    }
-    if (lastException != null) {
-      throw lastException;
-    }
-    throw new UnsupportedOperationException("Cannot find command for: " + request.getUri());
-  }
+			if (command != null && command.getSessionId() != null) {
+				response.setSessionId(command.getSessionId().toString());
+			}
+		}
 
-  private void setUpMappings() {
-	// PATCH: add element screenshot handler for robodriver
-	addNewMapping(ELEMENT_SCREENSHOT, GetElementScreenshot.class);
-	
-    addNewMapping(STATUS, Status.class);
-    addNewMapping(GET_ALL_SESSIONS, GetAllSessions.class);
-    addNewMapping(GET_CAPABILITIES, GetSessionCapabilities.class);
-    addNewMapping(QUIT, DeleteSession.class);
+		PerSessionLogHandler handler = LoggingManager.perSessionLogHandler();
+		if (response.getSessionId() != null) {
+			handler.attachToCurrentThread(new SessionId(response.getSessionId()));
+		}
+		try {
+			responseCodec.encode(() -> resp, response);
+		} finally {
+			handler.detachFromCurrentThread();
+		}
+	}
 
-    addNewMapping(GET_CURRENT_WINDOW_HANDLE, GetCurrentWindowHandle.class);
-    addNewMapping(GET_WINDOW_HANDLES, GetAllWindowHandles.class);
+	private Command decode(HttpRequest request) {
+		UnsupportedCommandException lastException = null;
+		for (CommandCodec<HttpRequest> codec : commandCodecs) {
+			try {
+				return codec.decode(request);
+			} catch (UnsupportedCommandException e) {
+				lastException = e;
+			}
+		}
+		if (lastException != null) {
+			throw lastException;
+		}
+		throw new UnsupportedOperationException("Cannot find command for: " + request.getUri());
+	}
 
-    addNewMapping(DISMISS_ALERT, DismissAlert.class);
-    addNewMapping(ACCEPT_ALERT, AcceptAlert.class);
-    addNewMapping(GET_ALERT_TEXT, GetAlertText.class);
-    addNewMapping(SET_ALERT_VALUE, SetAlertText.class);
+	private void setUpMappings() {
+		// PATCH: add element screenshot handler for robodriver
+		addNewMapping(ELEMENT_SCREENSHOT, GetElementScreenshot::new);
 
-    addNewMapping(GET, ChangeUrl.class);
-    addNewMapping(GET_CURRENT_URL, GetCurrentUrl.class);
-    addNewMapping(GO_FORWARD, GoForward.class);
-    addNewMapping(GO_BACK, GoBack.class);
-    addNewMapping(REFRESH, RefreshPage.class);
+		addNewMapping(STATUS, Status::new);
+		addNewMapping(GET_ALL_SESSIONS, GetAllSessions::new);
+		addNewMapping(GET_CAPABILITIES, GetSessionCapabilities::new);
+		addNewMapping(QUIT, DeleteSession::new);
 
-    addNewMapping(EXECUTE_SCRIPT, ExecuteScript.class);
-    addNewMapping(EXECUTE_ASYNC_SCRIPT, ExecuteAsyncScript.class);
+		addNewMapping(GET_CURRENT_WINDOW_HANDLE, GetCurrentWindowHandle::new);
+		addNewMapping(GET_WINDOW_HANDLES, GetAllWindowHandles::new);
 
-    addNewMapping(GET_PAGE_SOURCE, GetPageSource.class);
+		addNewMapping(DISMISS_ALERT, DismissAlert::new);
+		addNewMapping(ACCEPT_ALERT, AcceptAlert::new);
+		addNewMapping(GET_ALERT_TEXT, GetAlertText::new);
+		addNewMapping(SET_ALERT_VALUE, SetAlertText::new);
 
-    addNewMapping(SCREENSHOT, CaptureScreenshot.class);
+		addNewMapping(GET, ChangeUrl::new);
+		addNewMapping(GET_CURRENT_URL, GetCurrentUrl::new);
+		addNewMapping(GO_FORWARD, GoForward::new);
+		addNewMapping(GO_BACK, GoBack::new);
+		addNewMapping(REFRESH, RefreshPage::new);
 
-    addNewMapping(GET_TITLE, GetTitle.class);
+		addNewMapping(EXECUTE_SCRIPT, ExecuteScript::new);
+		addNewMapping(EXECUTE_ASYNC_SCRIPT, ExecuteAsyncScript::new);
 
-    addNewMapping(FIND_ELEMENT, FindElement.class);
-    addNewMapping(FIND_ELEMENTS, FindElements.class);
-    addNewMapping(GET_ACTIVE_ELEMENT, FindActiveElement.class);
+		addNewMapping(GET_PAGE_SOURCE, GetPageSource::new);
 
-    addNewMapping(FIND_CHILD_ELEMENT, FindChildElement.class);
-    addNewMapping(FIND_CHILD_ELEMENTS, FindChildElements.class);
+		addNewMapping(SCREENSHOT, CaptureScreenshot::new);
 
-    addNewMapping(CLICK_ELEMENT, ClickElement.class);
-    addNewMapping(GET_ELEMENT_TEXT, GetElementText.class);
-    addNewMapping(SUBMIT_ELEMENT, SubmitElement.class);
+		addNewMapping(GET_TITLE, GetTitle::new);
 
-    addNewMapping(UPLOAD_FILE, UploadFile.class);
-    addNewMapping(SEND_KEYS_TO_ELEMENT, SendKeys.class);
-    addNewMapping(GET_ELEMENT_TAG_NAME, GetTagName.class);
+		addNewMapping(FIND_ELEMENT, FindElement::new);
+		addNewMapping(FIND_ELEMENTS, FindElements::new);
+		addNewMapping(GET_ACTIVE_ELEMENT, FindActiveElement::new);
 
-    addNewMapping(CLEAR_ELEMENT, ClearElement.class);
-    addNewMapping(IS_ELEMENT_SELECTED, GetElementSelected.class);
-    addNewMapping(IS_ELEMENT_ENABLED, GetElementEnabled.class);
-    addNewMapping(IS_ELEMENT_DISPLAYED, GetElementDisplayed.class);
-    addNewMapping(GET_ELEMENT_LOCATION, GetElementLocation.class);
-    addNewMapping(GET_ELEMENT_LOCATION_ONCE_SCROLLED_INTO_VIEW, GetElementLocationInView.class);
-    addNewMapping(GET_ELEMENT_SIZE, GetElementSize.class);
-    addNewMapping(GET_ELEMENT_VALUE_OF_CSS_PROPERTY, GetCssProperty.class);
-    addNewMapping(GET_ELEMENT_RECT, GetElementRect.class);
+		addNewMapping(FIND_CHILD_ELEMENT, FindChildElement::new);
+		addNewMapping(FIND_CHILD_ELEMENTS, FindChildElements::new);
 
-    addNewMapping(GET_ELEMENT_ATTRIBUTE, GetElementAttribute.class);
-    addNewMapping(ELEMENT_EQUALS, ElementEquality.class);
+		addNewMapping(CLICK_ELEMENT, ClickElement::new);
+		addNewMapping(GET_ELEMENT_TEXT, GetElementText::new);
+		addNewMapping(SUBMIT_ELEMENT, SubmitElement::new);
 
-    addNewMapping(GET_ALL_COOKIES, GetAllCookies.class);
-    addNewMapping(GET_COOKIE, GetCookie.class);
-    addNewMapping(ADD_COOKIE, AddCookie.class);
-    addNewMapping(DELETE_ALL_COOKIES, DeleteCookie.class);
-    addNewMapping(DELETE_COOKIE, DeleteNamedCookie.class);
+		addNewMapping(UPLOAD_FILE, UploadFile::new);
+		addNewMapping(SEND_KEYS_TO_ELEMENT, SendKeys::new);
+		addNewMapping(GET_ELEMENT_TAG_NAME, GetTagName::new);
 
-    addNewMapping(SWITCH_TO_FRAME, SwitchToFrame.class);
-    addNewMapping(SWITCH_TO_PARENT_FRAME, SwitchToParentFrame.class);
-    addNewMapping(SWITCH_TO_WINDOW, SwitchToWindow.class);
-    addNewMapping(CLOSE, CloseWindow.class);
+		addNewMapping(CLEAR_ELEMENT, ClearElement::new);
+		addNewMapping(IS_ELEMENT_SELECTED, GetElementSelected::new);
+		addNewMapping(IS_ELEMENT_ENABLED, GetElementEnabled::new);
+		addNewMapping(IS_ELEMENT_DISPLAYED, GetElementDisplayed::new);
+		addNewMapping(GET_ELEMENT_LOCATION, GetElementLocation::new);
+		addNewMapping(GET_ELEMENT_LOCATION_ONCE_SCROLLED_INTO_VIEW, GetElementLocationInView::new);
+		addNewMapping(GET_ELEMENT_SIZE, GetElementSize::new);
+		addNewMapping(GET_ELEMENT_VALUE_OF_CSS_PROPERTY, GetCssProperty::new);
+		addNewMapping(GET_ELEMENT_RECT, GetElementRect::new);
 
-    addNewMapping(GET_CURRENT_WINDOW_SIZE, GetWindowSize.class);
-    addNewMapping(SET_CURRENT_WINDOW_SIZE, SetWindowSize.class);
-    addNewMapping(GET_CURRENT_WINDOW_POSITION, GetWindowPosition.class);
-    addNewMapping(SET_CURRENT_WINDOW_POSITION, SetWindowPosition.class);
-    addNewMapping(MAXIMIZE_CURRENT_WINDOW, MaximizeWindow.class);
-    addNewMapping(FULLSCREEN_CURRENT_WINDOW, FullscreenWindow.class);
+		addNewMapping(GET_ELEMENT_ATTRIBUTE, GetElementAttribute::new);
+		addNewMapping(ELEMENT_EQUALS, ElementEquality::new);
 
-    addNewMapping(SET_TIMEOUT, ConfigureTimeout.class);
-    addNewMapping(IMPLICITLY_WAIT, ImplicitlyWait.class);
-    addNewMapping(SET_SCRIPT_TIMEOUT, SetScriptTimeout.class);
+		addNewMapping(GET_ALL_COOKIES, GetAllCookies::new);
+		addNewMapping(GET_COOKIE, GetCookie::new);
+		addNewMapping(ADD_COOKIE, AddCookie::new);
+		addNewMapping(DELETE_ALL_COOKIES, DeleteCookie::new);
+		addNewMapping(DELETE_COOKIE, DeleteNamedCookie::new);
 
-    addNewMapping(GET_LOCATION, GetLocationContext.class);
-    addNewMapping(SET_LOCATION,  SetLocationContext.class);
+		addNewMapping(SWITCH_TO_FRAME, SwitchToFrame::new);
+		addNewMapping(SWITCH_TO_PARENT_FRAME, SwitchToParentFrame::new);
+		addNewMapping(SWITCH_TO_WINDOW, SwitchToWindow::new);
+		addNewMapping(CLOSE, CloseWindow::new);
 
-    addNewMapping(GET_APP_CACHE_STATUS, GetAppCacheStatus.class);
+		addNewMapping(GET_CURRENT_WINDOW_SIZE, GetWindowSize::new);
+		addNewMapping(SET_CURRENT_WINDOW_SIZE, SetWindowSize::new);
+		addNewMapping(GET_CURRENT_WINDOW_POSITION, GetWindowPosition::new);
+		addNewMapping(SET_CURRENT_WINDOW_POSITION, SetWindowPosition::new);
+		addNewMapping(MAXIMIZE_CURRENT_WINDOW, MaximizeWindow::new);
+		addNewMapping(FULLSCREEN_CURRENT_WINDOW, FullscreenWindow::new);
 
-    addNewMapping(GET_LOCAL_STORAGE_ITEM, GetLocalStorageItem.class);
-    addNewMapping(REMOVE_LOCAL_STORAGE_ITEM, RemoveLocalStorageItem.class);
-    addNewMapping(GET_LOCAL_STORAGE_KEYS, GetLocalStorageKeys.class);
-    addNewMapping(SET_LOCAL_STORAGE_ITEM, SetLocalStorageItem.class);
-    addNewMapping(CLEAR_LOCAL_STORAGE, ClearLocalStorage.class);
-    addNewMapping(GET_LOCAL_STORAGE_SIZE, GetLocalStorageSize.class);
+		addNewMapping(SET_TIMEOUT, ConfigureTimeout::new);
+		addNewMapping(IMPLICITLY_WAIT, ImplicitlyWait::new);
+		addNewMapping(SET_SCRIPT_TIMEOUT, SetScriptTimeout::new);
 
-    addNewMapping(GET_SESSION_STORAGE_ITEM, GetSessionStorageItem.class);
-    addNewMapping(REMOVE_SESSION_STORAGE_ITEM, RemoveSessionStorageItem.class);
-    addNewMapping(GET_SESSION_STORAGE_KEYS, GetSessionStorageKeys.class);
-    addNewMapping(SET_SESSION_STORAGE_ITEM, SetSessionStorageItem.class);
-    addNewMapping(CLEAR_SESSION_STORAGE, ClearSessionStorage.class);
-    addNewMapping(GET_SESSION_STORAGE_SIZE, GetSessionStorageSize.class);
+		addNewMapping(GET_LOCATION, GetLocationContext::new);
+		addNewMapping(SET_LOCATION, SetLocationContext::new);
 
-    addNewMapping(GET_SCREEN_ORIENTATION, GetScreenOrientation.class);
-    addNewMapping(SET_SCREEN_ORIENTATION, Rotate.class);
+		addNewMapping(GET_APP_CACHE_STATUS, GetAppCacheStatus::new);
 
-    addNewMapping(MOVE_TO, MouseMoveToLocation.class);
-    addNewMapping(CLICK, ClickInSession.class);
-    addNewMapping(DOUBLE_CLICK, DoubleClickInSession.class);
-    addNewMapping(MOUSE_DOWN, MouseDown.class);
-    addNewMapping(MOUSE_UP, MouseUp.class);
-    addNewMapping(SEND_KEYS_TO_ACTIVE_ELEMENT, SendKeyToActiveElement.class);
+		addNewMapping(GET_LOCAL_STORAGE_ITEM, GetLocalStorageItem::new);
+		addNewMapping(REMOVE_LOCAL_STORAGE_ITEM, RemoveLocalStorageItem::new);
+		addNewMapping(GET_LOCAL_STORAGE_KEYS, GetLocalStorageKeys::new);
+		addNewMapping(SET_LOCAL_STORAGE_ITEM, SetLocalStorageItem::new);
+		addNewMapping(CLEAR_LOCAL_STORAGE, ClearLocalStorage::new);
+		addNewMapping(GET_LOCAL_STORAGE_SIZE, GetLocalStorageSize::new);
 
-    addNewMapping(IME_GET_AVAILABLE_ENGINES, ImeGetAvailableEngines.class);
-    addNewMapping(IME_GET_ACTIVE_ENGINE, ImeGetActiveEngine.class);
-    addNewMapping(IME_IS_ACTIVATED, ImeIsActivated.class);
-    addNewMapping(IME_DEACTIVATE, ImeDeactivate.class);
-    addNewMapping(IME_ACTIVATE_ENGINE, ImeActivateEngine.class);
+		addNewMapping(GET_SESSION_STORAGE_ITEM, GetSessionStorageItem::new);
+		addNewMapping(REMOVE_SESSION_STORAGE_ITEM, RemoveSessionStorageItem::new);
+		addNewMapping(GET_SESSION_STORAGE_KEYS, GetSessionStorageKeys::new);
+		addNewMapping(SET_SESSION_STORAGE_ITEM, SetSessionStorageItem::new);
+		addNewMapping(CLEAR_SESSION_STORAGE, ClearSessionStorage::new);
+		addNewMapping(GET_SESSION_STORAGE_SIZE, GetSessionStorageSize::new);
 
-    addNewMapping(ACTIONS, W3CActions.class);
+		addNewMapping(GET_SCREEN_ORIENTATION, GetScreenOrientation::new);
+		addNewMapping(SET_SCREEN_ORIENTATION, Rotate::new);
 
-    // Advanced Touch API
-    addNewMapping(TOUCH_SINGLE_TAP, SingleTapOnElement.class);
-    addNewMapping(TOUCH_DOWN, Down.class);
-    addNewMapping(TOUCH_UP, Up.class);
-    addNewMapping(TOUCH_MOVE, Move.class);
-    addNewMapping(TOUCH_SCROLL, Scroll.class);
-    addNewMapping(TOUCH_DOUBLE_TAP, DoubleTapOnElement.class);
-    addNewMapping(TOUCH_LONG_PRESS, LongPressOnElement.class);
-    addNewMapping(TOUCH_FLICK, Flick.class);
+		addNewMapping(MOVE_TO, MouseMoveToLocation::new);
+		addNewMapping(CLICK, ClickInSession::new);
+		addNewMapping(DOUBLE_CLICK, DoubleClickInSession::new);
+		addNewMapping(MOUSE_DOWN, MouseDown::new);
+		addNewMapping(MOUSE_UP, MouseUp::new);
+		addNewMapping(SEND_KEYS_TO_ACTIVE_ELEMENT, SendKeyToActiveElement::new);
 
-    addNewMapping(GET_AVAILABLE_LOG_TYPES, GetAvailableLogTypesHandler.class);
-    addNewMapping(GET_LOG, GetLogHandler.class);
-    addNewMapping(GET_SESSION_LOGS, GetSessionLogsHandler.class);
+		addNewMapping(IME_GET_AVAILABLE_ENGINES, ImeGetAvailableEngines::new);
+		addNewMapping(IME_GET_ACTIVE_ENGINE, ImeGetActiveEngine::new);
+		addNewMapping(IME_IS_ACTIVATED, ImeIsActivated::new);
+		addNewMapping(IME_DEACTIVATE, ImeDeactivate::new);
+		addNewMapping(IME_ACTIVATE_ENGINE, ImeActivateEngine::new);
 
-    addNewMapping(GET_NETWORK_CONNECTION, GetNetworkConnection.class);
-    addNewMapping(SET_NETWORK_CONNECTION, SetNetworkConnection.class);
+		addNewMapping(ACTIONS, W3CActions::new);
 
-    // Deprecated end points. Will be removed.
-    addNewMapping("getWindowSize", GetWindowSize.class);
-    addNewMapping("setWindowSize", SetWindowSize.class);
-    addNewMapping("maximizeWindow", MaximizeWindow.class);
-  }
+		// Advanced Touch API
+		addNewMapping(TOUCH_SINGLE_TAP, SingleTapOnElement::new);
+		addNewMapping(TOUCH_DOWN, Down::new);
+		addNewMapping(TOUCH_UP, Up::new);
+		addNewMapping(TOUCH_MOVE, Move::new);
+		addNewMapping(TOUCH_SCROLL, Scroll::new);
+		addNewMapping(TOUCH_DOUBLE_TAP, DoubleTapOnElement::new);
+		addNewMapping(TOUCH_LONG_PRESS, LongPressOnElement::new);
+		addNewMapping(TOUCH_FLICK, Flick::new);
+
+		addNewMapping(GET_AVAILABLE_LOG_TYPES, GetAvailableLogTypesHandler::new);
+		addNewMapping(GET_LOG, GetLogHandler::new);
+		addNewMapping(GET_SESSION_LOGS, GetSessionLogsHandler::new);
+
+		addNewMapping(GET_NETWORK_CONNECTION, GetNetworkConnection::new);
+		addNewMapping(SET_NETWORK_CONNECTION, SetNetworkConnection::new);
+
+		// Deprecated end points. Will be removed.
+		addNewMapping("getWindowSize", GetWindowSize::new);
+		addNewMapping("setWindowSize", SetWindowSize::new);
+		addNewMapping("maximizeWindow", MaximizeWindow::new);
+	}
 }

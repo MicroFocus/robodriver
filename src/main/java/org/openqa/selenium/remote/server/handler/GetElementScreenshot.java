@@ -1,4 +1,4 @@
-// PATCH: find in this file 'robodriver' to see changes
+// PATCH: see usage in org.openqa.selenium.remote.server.JsonHttpCommandHandler.setUpMappings()
 
 package org.openqa.selenium.remote.server.handler;
 
@@ -15,10 +15,9 @@ public class GetElementScreenshot extends WebElementHandler<String> {
 
 	@Override
 	public String call() throws Exception {
-		TakesScreenshot element = (TakesScreenshot)getElement();
+		TakesScreenshot element = (TakesScreenshot) getElement();
 		return element.getScreenshotAs(BASE64);
 	}
-
 
 	@Override
 	public String toString() {
