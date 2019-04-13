@@ -12,11 +12,15 @@ import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.RemoteWebElement;
 
+/**
+ * Rectangle relative to its screen.
+ * 
+ */
 public class RoboScreenRectangle extends RemoteWebElement {
-	
+
 	private static AtomicInteger ID_PROVIDER = new AtomicInteger(0);
 	private static WeakHashMap<String, RoboScreenRectangle> RECTANGLES = new WeakHashMap<>();
-	
+
 	public static RoboScreenRectangle get(String id) {
 		return RECTANGLES.get(id);
 	}
@@ -65,7 +69,7 @@ public class RoboScreenRectangle extends RemoteWebElement {
 	public Point getLocation() {
 		return new Point(getX(), getY());
 	}
-	
+
 	@Override
 	public Dimension getSize() {
 		return new Dimension(this.width, this.height);
@@ -75,29 +79,30 @@ public class RoboScreenRectangle extends RemoteWebElement {
 	public org.openqa.selenium.Rectangle getRect() {
 		return new org.openqa.selenium.Rectangle(getX(), getY(), getHeight(), getWidth());
 	}
-	
-	private Rectangle getRectAwt() {
+
+	public Rectangle getRectAwt() {
 		return new Rectangle(getX(), getY(), getWidth(), getHeight());
 	}
 
 	/**
 	 * Retrieve base64 encoded PNG.
+	 * 
 	 * @return base64 encoded PNG
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public String getScreenshot() throws IOException {
 		GraphicsDevice device = screen.getDevice();
 		RoboUtil roboUtil = new RoboUtil();
-		return roboUtil.getScreenshot(device, getRectAwt()); 
+		return roboUtil.getScreenshot(device, getRectAwt());
 	}
-	
+
 	@Override
 	public void click() {
 		GraphicsDevice device = screen.getDevice();
 		RoboUtil roboUtil = new RoboUtil();
-		roboUtil.click(device, getRectAwt()); 
+		roboUtil.click(device, getRectAwt());
 	}
-	
+
 	@Override
 	public <X> X getScreenshotAs(OutputType<X> outputType) throws WebDriverException {
 		return super.getScreenshotAs(outputType);

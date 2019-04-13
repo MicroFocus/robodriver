@@ -20,7 +20,7 @@ public class RoboScreenRectangleTest {
 	private static Point casp; // click area screen position of left upper corner
 	private static RemoteWebDriver browser;
 	private static TestUtil util;
-	
+
 	private RoboDriver robo;
 
 	@BeforeClass
@@ -30,11 +30,11 @@ public class RoboScreenRectangleTest {
 		util.navigateToTestPage(browser);
 		WebElement clickArea = browser.findElementById("clickarea");
 		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
-		
+
 		WebElement clickInfo = browser.findElementById("outputs");
 		assertTrue("click info must be empty", clickInfo.getAttribute("value").isEmpty());
 	}
-	
+
 	@AfterClass
 	public static void onAfterClass() {
 		if (browser != null) {
@@ -42,19 +42,20 @@ public class RoboScreenRectangleTest {
 			util.stopServices();
 		}
 	}
-	
+
 	@Before
 	public void onBeforeTest() throws IOException {
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		robo = new RoboDriver(roboCapabilities);
 	}
-	
+
 	@Test
 	public void testRectangle() throws IOException {
-		// when: retrieve rectangle x,y,width,height (x,y = position of left upper corner)
-		WebElement screenRectangle = robo.findElementByXPath(
-				"//screen[@default=true]//rectangle[@dim='10,20,500,300']"); 
-		
+		// when: retrieve rectangle x,y,width,height (x,y = position of left upper
+		// corner)
+		WebElement screenRectangle = robo
+				.findElementByXPath("//screen[@default=true]//rectangle[@dim='10,20,500,300']");
+
 		// then
 		assertEquals(10, screenRectangle.getLocation().x);
 		assertEquals(20, screenRectangle.getLocation().y);
@@ -66,26 +67,52 @@ public class RoboScreenRectangleTest {
 	public void testRectangleOfScreen() throws IOException {
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 
-		// when: retrieve rectangle x,y,width,height (x,y = position of left upper corner)
-		WebElement screenRectangle = screen.findElement(By.xpath("rectangle[@dim='10,20,500,300']")); 
-		
+		// when: retrieve rectangle x,y,width,height (x,y = position of left upper
+		// corner)
+		WebElement screenRectangle = screen.findElement(By.xpath("rectangle[@dim='10,20,500,300']"));
+
 		// then
 		assertEquals(10, screenRectangle.getLocation().x);
 		assertEquals(20, screenRectangle.getLocation().y);
 		assertEquals(500, screenRectangle.getSize().width);
 		assertEquals(300, screenRectangle.getSize().height);
-	}	
+	}
+
+	/**
+	 * The location of a WebElement representing a rectangle is always relative to
+	 * the screen.
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void testRectangleWithinRectangle() throws IOException {
+		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
+		WebElement screenRectangle = screen.findElement(By.xpath("rectangle[@dim='10,20,500,300']"));
+		assertEquals(10, screenRectangle.getLocation().x);
+		assertEquals(20, screenRectangle.getLocation().y);
+		assertEquals(500, screenRectangle.getSize().width);
+		assertEquals(300, screenRectangle.getSize().height);
+
+		// when: retrieve rectangle x,y,width,height (x,y = position of left upper
+		// corner)
+		WebElement screenRectangleRectangle = screenRectangle.findElement(By.xpath("rectangle[@dim='5,12,100,200']"));
+
+		// then
+		assertEquals(5 + screenRectangle.getLocation().x, screenRectangleRectangle.getLocation().x);
+		assertEquals(12 + screenRectangle.getLocation().y, screenRectangleRectangle.getLocation().y);
+		assertEquals(100, screenRectangleRectangle.getSize().width);
+		assertEquals(200, screenRectangleRectangle.getSize().height);
+	}
 
 	@Test
 	public void testRectangleClick() throws IOException {
 		WebElement clickInfo = browser.findElementById("outputs");
-		
+
 		// when: click to center of a rectangle from screen
-		WebElement screenRectElem = robo.findElementByXPath(
-				String.format("//screen[@default=true]//rectangle[@dim='%d,%d,%d,%d']", 
-						casp.getX(), casp.getY(), 100, 80));
+		WebElement screenRectElem = robo.findElementByXPath(String
+				.format("//screen[@default=true]//rectangle[@dim='%d,%d,%d,%d']", casp.getX(), casp.getY(), 100, 80));
 		screenRectElem.click();
-		
+
 		// then
 		String clickInfoText = clickInfo.getAttribute("value");
 		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());

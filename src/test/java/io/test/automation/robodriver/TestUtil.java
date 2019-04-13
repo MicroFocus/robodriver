@@ -27,18 +27,17 @@ public class TestUtil {
 		URL url = testPageFile.toURI().toURL();
 		driver.get(url.toString());
 	}
-	
+
 	public RemoteWebDriver startFirefox() throws IOException {
-		//System.setProperty(FirefoxDriver.SystemProperty.BROWSER_BINARY, "C:\\Program Files (x86)\\Mozilla Firefox_50\\firefox.exe");
+		// System.setProperty(FirefoxDriver.SystemProperty.BROWSER_BINARY, "C:\\Program
+		// Files (x86)\\Mozilla Firefox_50\\firefox.exe");
 		URL url = startLocalFirefox();
 		return new RemoteWebDriver(url, DesiredCapabilities.firefox());
 	}
-	
+
 	private URL startLocalFirefox() throws IOException {
 		FirefoxOptions options = new FirefoxOptions();
-		geckoDriverService = new GeckoDriverService.Builder()
-				.usingAnyFreePort()
-				.usingFirefoxBinary(options.getBinary())
+		geckoDriverService = new GeckoDriverService.Builder().usingAnyFreePort().usingFirefoxBinary(options.getBinary())
 				.build();
 		geckoDriverService.start();
 		URL url = geckoDriverService.getUrl();
@@ -50,7 +49,9 @@ public class TestUtil {
 	}
 
 	/**
-	 * Starts local Chrome for testing.
+	 * Starts local Chrome for testing. With 'chromedriver.exe' in the system PATH
+	 * this works out of the box.
+	 * 
 	 * @throws IOException
 	 */
 	public RemoteWebDriver startChrome() throws IOException {
@@ -68,16 +69,14 @@ public class TestUtil {
 		chromeOptions.setCapability(CapabilityType.LOGGING_PREFS, logs);
 		return new RemoteWebDriver(url, chromeOptions);
 	}
-	
+
 	private URL startLocalChrome() throws IOException {
-		chromeDriverService = new ChromeDriverService.Builder()
-				.usingAnyFreePort()
-				.build();
+		chromeDriverService = new ChromeDriverService.Builder().usingAnyFreePort().build();
 		chromeDriverService.start();
 		URL url = chromeDriverService.getUrl();
 		return url;
 	}
-	
+
 	public void stopServices() {
 		try {
 			if (geckoDriverService != null) {
@@ -95,7 +94,7 @@ public class TestUtil {
 	public boolean isWindows() {
 		return System.getProperty("os.name").toLowerCase().contains("win");
 	}
-	
+
 	public void clearInfoTextField(RemoteWebDriver browser) {
 		// clear info outputs
 		WebElement clearButton = browser.findElementById("clearbutton");
@@ -116,7 +115,7 @@ public class TestUtil {
 
 	public static void main(String[] args) {
 		System.out.println(System.getProperty("os.name"));
-		
+
 		RemoteWebDriver driver = null;
 		TestUtil util = new TestUtil();
 		try {
@@ -131,5 +130,5 @@ public class TestUtil {
 			}
 		}
 	}
-	
+
 }

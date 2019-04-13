@@ -16,7 +16,7 @@ public class ScreenXpath {
 	private String lowerCasePath;
 
 	public ScreenXpath(String path) {
-		if (! path.toLowerCase().contains("screen") && ! path.toLowerCase().contains("rectangle")) {
+		if (!path.toLowerCase().contains("screen") && !path.toLowerCase().contains("rectangle")) {
 			throw new WebDriverException("connot find '" + path + "'");
 		}
 		this.path = path;
@@ -32,13 +32,11 @@ public class ScreenXpath {
 	}
 
 	public boolean isRectangleByDim() {
-		return lowerCasePath.contains("rectangle")
-				&& lowerCasePath.contains("@dim=");
+		return lowerCasePath.contains("rectangle") && lowerCasePath.contains("@dim=");
 	}
 
 	public boolean isRectangleByImg() {
-		return lowerCasePath.contains("rectangle")
-				&& lowerCasePath.contains("@img=");
+		return lowerCasePath.contains("rectangle") && lowerCasePath.contains("@img=");
 	}
 
 	public int getScreenIndex() {
@@ -47,7 +45,7 @@ public class ScreenXpath {
 			try {
 				return Integer.parseInt(matcher.group(1));
 			} catch (Exception e) {
-				throw new WebDriverException("Cannot parse screen index of xpath '" + getPath()+ "'");
+				throw new WebDriverException("Cannot parse screen index of xpath '" + getPath() + "'");
 			}
 		}
 		return 0;
@@ -60,9 +58,9 @@ public class ScreenXpath {
 				String group = matcher.group(1);
 				String[] dim = group.split("[,\\s]+");
 				if (dim.length != 4) {
-					throw new WebDriverException(
-							String.format("Invalid rectangle dimension '%s', expected format: rectangle[@dim='x,y,width,height']", 
-									group));
+					throw new WebDriverException(String.format(
+							"Invalid rectangle dimension '%s', expected format: rectangle[@dim='x,y,width,height']",
+							group));
 				}
 				int x = Integer.parseInt(dim[0]);
 				int y = Integer.parseInt(dim[1]);
@@ -72,9 +70,20 @@ public class ScreenXpath {
 			} catch (Exception e) {
 			}
 		}
-		throw new WebDriverException(
-				String.format("Cannot parse dimension of rectangle '%s', expected format: rectangle[@dim='x,y,width,height']", 
-						getPath()));
+		throw new WebDriverException(String.format(
+				"Cannot parse dimension of rectangle '%s', expected format: rectangle[@dim='x,y,width,height']",
+				getPath()));
+	}
+
+	public Rectangle getRectangle(RoboScreenRectangle parentRectangle) {
+		Rectangle rectangle = getRectangle();
+		if (parentRectangle != null) {
+			return new Rectangle(parentRectangle.getX() + (int) rectangle.getX(),
+					parentRectangle.getY() + (int) rectangle.getY(), (int) rectangle.getWidth(),
+					(int) rectangle.getHeight());
+		} else {
+			return rectangle;
+		}
 	}
 
 	public String getImgUriOrFile() {
@@ -85,9 +94,9 @@ public class ScreenXpath {
 			} catch (Exception e) {
 			}
 		}
-		throw new WebDriverException(
-				String.format("Cannot parse image URI of rectangle '%s', expected format: rectangle[@img='http://xxx/img.png']", 
-						getPath()));
+		throw new WebDriverException(String.format(
+				"Cannot parse image URI of rectangle '%s', expected format: rectangle[@img='http://xxx/img.png']",
+				getPath()));
 	}
 
 	private Rectangle createRectangle(int x, int y, int w, int h) {

@@ -23,8 +23,8 @@ public class RoboScreen extends RemoteWebElement {
 
 	private static Logger LOGGER = LoggerUtil.get(RoboScreen.class);
 
-	private static Map<String, RoboScreen> roboScreenCache = new HashMap<>();
-	
+	private static Map<String, RoboScreen> SCREENS = new HashMap<>();
+
 	private GraphicsDevice device;
 	private java.awt.Rectangle bounds;
 	private Rectangle rect;
@@ -32,7 +32,6 @@ public class RoboScreen extends RemoteWebElement {
 	private RoboUtil roboUtil = new RoboUtil();
 
 	private BufferedImage screenImageBuffer;
-	
 
 	private RoboScreen(GraphicsDevice device) {
 		this.device = device;
@@ -48,9 +47,10 @@ public class RoboScreen extends RemoteWebElement {
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	}
 
-	//@Override (Eclipse issue)
+	// @Override (Eclipse issue)
 	public void sendKeys(CharSequence... keysToSend) {
-		LOGGER.log(Level.FINE, ()->String.format("send keys '%s', device=%s", charSequenceToString(keysToSend), device)); 
+		LOGGER.log(Level.FINE,
+				() -> String.format("send keys '%s', device=%s", charSequenceToString(keysToSend), device));
 		Robot robot = roboUtil.getRobot(device);
 		roboUtil.sendKeys(robot, keysToSend);
 	}
@@ -120,26 +120,26 @@ public class RoboScreen extends RemoteWebElement {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public Coordinates getCoordinates() {
 		return new Coordinates() {
-	
+
 			@Override
 			public Point onScreen() {
 				throw new UnsupportedOperationException("Not supported yet.");
 			}
-	
+
 			@Override
 			public Point inViewPort() {
 				return getLocation();
 			}
-	
+
 			@Override
 			public Point onPage() {
 				return getLocation();
 			}
-	
+
 			@Override
 			public Object getAuxiliary() {
 				return device.getIDstring();
@@ -158,17 +158,17 @@ public class RoboScreen extends RemoteWebElement {
 
 	public static RoboScreen getInstance(GraphicsDevice device, RemoteWebDriver driver) {
 		String id = "screen-" + device.getIDstring();
-		if (roboScreenCache.containsKey(id)) {
-			return roboScreenCache.get(id);
+		if (SCREENS.containsKey(id)) {
+			return SCREENS.get(id);
 		} else {
 			RoboScreen roboScreen = new RoboScreen(device);
 			roboScreen.setId(id);
 			roboScreen.setParent(driver);
-			roboScreenCache.put(id, roboScreen);
+			SCREENS.put(id, roboScreen);
 			return roboScreen;
 		}
 	}
-	
+
 	public static RoboScreen getDefaultScreen(RemoteWebDriver driver) {
 		return getInstance(new RoboUtil().getDefaultDevice(), driver);
 	}
@@ -186,7 +186,7 @@ public class RoboScreen extends RemoteWebElement {
 	}
 
 	public static RoboScreen getScreenById(String id) {
-		return roboScreenCache.get(id);
+		return SCREENS.get(id);
 	}
 
 	private String charSequenceToString(CharSequence[] charSequenceArray) {
@@ -211,5 +211,11 @@ public class RoboScreen extends RemoteWebElement {
 		}
 		return screenImageBuffer;
 	}
-}
 
+	public BufferedImage getScreenCapture(RoboScreenRectangle ofRectangle) {
+		GraphicsDevice device = getDevice();
+		Robot robot = roboUtil.getRobot(device);
+		java.awt.Rectangle screenPartialRect = ofRectangle.getRectAwt();
+		return robot.createScreenCapture(screenPartialRect);
+	}
+}

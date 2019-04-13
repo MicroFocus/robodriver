@@ -39,6 +39,9 @@ public class RoboImage {
 		} catch (Exception e) {
 			throw new WebDriverException(e);
 		}
+		if (this.bufferedImage == null) {
+			throw new WebDriverException(String.format("invalid image URI: '%s'", imgUriOrFile));
+		}
 	}
 
 	public BufferedImage getBufferedImage() {

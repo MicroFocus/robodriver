@@ -36,23 +36,23 @@ import io.test.automation.robodriver.internal.RoboUtil;
 import io.test.automation.robodriver.internal.ScreenXpath;
 
 public class RoboDriverCommandExecutor implements CommandExecutor {
-	
+
 	private static Logger LOGGER = LoggerUtil.get(RoboDriverCommandExecutor.class);
-	
+
 	private RoboDriver driver;
 
 	private RoboUtil roboUtil;
 
 	private Process appProcess;
-			
+
 	public void setDriver(RoboDriver driver) {
 		this.driver = driver;
 	}
-	
+
 	public RoboDriverCommandExecutor() {
 		roboUtil = new RoboUtil();
 	}
-	
+
 	@Override
 	public Response execute(Command command) throws IOException {
 		try {
@@ -62,11 +62,11 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			throw e;
 		}
 	}
-	
+
 	public Response executeImpl(Command command) throws IOException {
-		LOGGER.log(Level.FINE, ()->String.format("command: '%s' - %s", command.getName(), command.toString()));
+		LOGGER.log(Level.FINE, () -> String.format("command: '%s' - %s", command.getName(), command.toString()));
 		Response response = new Response(command.getSessionId());
-		switch(command.getName()) {
+		switch (command.getName()) {
 		case DriverCommand.SCREENSHOT:
 			execScreenshot(response);
 			break;
@@ -100,14 +100,15 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		case DriverCommand.ACTIONS:
 			execActionsW3C(command);
 			break;
-		case DriverCommand.CLICK_ELEMENT: 
+		case DriverCommand.CLICK_ELEMENT:
 			execClickElement(command);
 			break;
-		case DriverCommand.QUIT: 
+		case DriverCommand.QUIT:
 			execQuit();
 			break;
 		default:
-			LOGGER.log(Level.INFO, ()->String.format("ignored command: '%s' - %s", command.getName(), command.toString()));
+			LOGGER.log(Level.INFO,
+					() -> String.format("ignored command: '%s' - %s", command.getName(), command.toString()));
 		}
 		response.setState("success");
 		response.setStatus(ErrorCodes.SUCCESS);
@@ -130,7 +131,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 
 	private void execNewSession(Command command, Response response) {
 		Map<String, ?> parameters = command.getParameters();
-		startClient((Capabilities)parameters.get("desiredCapabilities"));
+		startClient((Capabilities) parameters.get("desiredCapabilities"));
 		String sessionId = UUID.randomUUID().toString();
 		HashMap<String, Object> values = new HashMap<>();
 		HashMap<String, Object> capabs = new HashMap<>();
@@ -157,20 +158,35 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 	}
 
 	private void execFindChildElement(Command command, Response response) {
-		Map<String, ?> parameters = command.getParameters();
-		String id = parameters.get("id").toString();
+		final Map<String, ?> parameters = command.getParameters();
+		final String id = parameters.get("id").toString();
+		final RoboScreenRectangle parentRectangle;
 		RoboScreen screen = RoboScreen.getScreenById(id);
+		if (screen == null) {
+			parentRectangle = RoboScreenRectangle.get(id);
+			screen = parentRectangle.getScreen();
+		} else {
+			parentRectangle = null;
+		}
 		assert "xpath".equals(parameters.get("using").toString().toLowerCase());
-		String value = parameters.get("value").toString().toLowerCase();
-		ScreenXpath xpath = new ScreenXpath(value);
-		if (! xpath.isRectangle()) {
+		final String value = parameters.get("value").toString();
+		final ScreenXpath xpath = new ScreenXpath(value);
+		if (!xpath.isRectangle()) {
 			throw new WebDriverException("cannot find child '" + value + "' from device ID '" + id + "'");
 		}
-		Rectangle rectangle = xpath.getRectangle();
-		if (rectangle == null) {
-			rectangle = screen.getRectAwt();
+		if (xpath.isRectangleByDim()) {
+			Rectangle rectangle = xpath.getRectangle(parentRectangle);
+			response.setValue(new RoboScreenRectangle(screen, rectangle));
+		} else if (xpath.isRectangleByImg()) {
+			RoboImage i = new RoboImage(xpath.getImgUriOrFile());
+			Rectangle rectangle = new ImageUtil().findRectangle(screen, parentRectangle, i);
+			if (rectangle == null) {
+				throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
+			}
+			response.setValue(new RoboScreenRectangle(screen, rectangle));
+		} else {
+			throw new RuntimeException("invalid rectangle: " + parameters);
 		}
-		response.setValue(new RoboScreenRectangle(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height));
 	}
 
 	private void execFindElement(Command command, Response response) {
@@ -215,8 +231,8 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			GraphicsDevice device = roboUtil.getDeviceById(deviceId);
 			Robot robot = roboUtil.getRobot(device);
 			if (parameters.containsKey("xoffset")) {
-				int xoffset =  new BigDecimal((Long)parameters.get("xoffset")).intValueExact();
-				int yoffset = new BigDecimal((Long)parameters.get("yoffset")).intValueExact();
+				int xoffset = new BigDecimal((Long) parameters.get("xoffset")).intValueExact();
+				int yoffset = new BigDecimal((Long) parameters.get("yoffset")).intValueExact();
 				robot.mouseMove(xoffset, yoffset);
 			} else {
 				// move to center
@@ -260,7 +276,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 				startSequenceExecutors(actions, sequences);
 				executeSequencesTickByTick(sequences);
 			} else {
-				LOGGER.log(Level.SEVERE, ()->String.format("unknown actions type: %s", actionsObject));
+				LOGGER.log(Level.SEVERE, () -> String.format("unknown actions type: %s", actionsObject));
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -281,15 +297,15 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 
 	private GraphicsDevice getDevice(Map<String, ?> parameters) {
 		if (parameters.containsKey("element")) {
-			return roboUtil.getDeviceById((String)parameters.get("element"));
+			return roboUtil.getDeviceById((String) parameters.get("element"));
 		} else {
 			return roboUtil.getDefaultDevice();
 		}
 	}
 
 	private void executeSequencesTickByTick(List<RoboSequenceExecutor> sequences) throws Exception {
-		boolean completedAllTicks; 
-		LOGGER.log(Level.FINE, ()->String.format("TICK - start execution for %d sequences", sequences.size()));
+		boolean completedAllTicks;
+		LOGGER.log(Level.FINE, () -> String.format("TICK - start execution for %d sequences", sequences.size()));
 		do {
 			// start next tick for every sequence
 			LOGGER.log(Level.FINE, "TICK");
@@ -314,7 +330,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 			} else if (action instanceof Sequence) {
 				sequences.add(new RoboSequenceExecutor((Sequence) action));
 			} else {
-				LOGGER.log(Level.SEVERE, ()->String.format("unknown action: %s", action));
+				LOGGER.log(Level.SEVERE, () -> String.format("unknown action: %s", action));
 			}
 		}
 		for (RoboSequenceExecutor roboSequence : sequences) {
@@ -326,8 +342,8 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		if (desiredCapabilities == null) {
 			return;
 		}
-	
-		String app = (String)desiredCapabilities.getCapability(RoboDriver.APP);
+
+		String app = (String) desiredCapabilities.getCapability(RoboDriver.APP);
 		if (app != null) {
 			ProcessBuilder processBuilder = new ProcessBuilder(app.split("\\s+"));
 			try {
