@@ -2,6 +2,7 @@ package io.test.automation.robodriver.remote;
 
 import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.awt.Color;
@@ -20,13 +21,16 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import io.test.automation.robodriver.RoboDriver;
 import io.test.automation.robodriver.RoboDriverUtil;
@@ -81,12 +85,10 @@ public class RoboDriverServerTest {
 
 	@Before
 	public void onBeforeTest() throws IOException {
-		if (!serverRunning) {
-			return;
-		}
+		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		util.clearInfoTextField(browser);
 
-		// Create a RemoteWebDriver instance to use a remote RoboDriver Selnium server.
+		// Create a RemoteWebDriver instance to use a remote RoboDriver Selenium server.
 		remoteRobo = new RemoteWebDriver(remoteAddress, RoboDriver.getDesiredCapabilities());
 	}
 
@@ -106,7 +108,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testSendKeys() throws Exception {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
@@ -120,7 +121,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testSendShiftKeyActions() throws Exception {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
@@ -133,7 +133,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testMixedKeyMouseActions() throws Exception {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
@@ -148,9 +147,77 @@ public class RoboDriverServerTest {
 	}
 
 	@Test
-	public void testScreenshot() throws IOException {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
+	public void testClickToRectangleElementUsingActions() throws Exception {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+		WebElement clickArea = browser.findElementById("clickarea");
 
+		// when
+		WebElement rectangleClickArea = new RoboDriverUtil().findSreenRectangleFromWebElement(remoteRobo, clickArea);
+
+		Actions actions = new Actions(remoteRobo);
+		Actions click = actions.click(rectangleClickArea);
+		click.perform();
+
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
+		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
+	}
+
+	@Test
+	public void testClickToMultipleRectangleElementUsingActions() throws Exception {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+		WebElement clickArea = browser.findElementById("clickarea");
+
+		// when
+		WebElement rect0 = new RoboDriverUtil().findSreenRectangleFromWebElement(remoteRobo, clickArea);
+		WebElement rect1 = rect0.findElement(By.xpath("//rectangle[@dim='10,10,3,5']"));
+		WebElement rect2 = rect0.findElement(By.xpath("//rectangle[@dim='80,20,3,5']"));
+
+		// click to center of click area
+		Actions actions = new Actions(remoteRobo);
+		Actions click = actions.click(rect0);
+		click.perform();
+		// click to rectangles within click area
+		actions = new Actions(remoteRobo);
+		click = actions.click(rect1);
+		click.perform();
+		actions = new Actions(remoteRobo);
+		click = actions.click(rect2);
+		click.perform();
+
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		System.out.println(clickInfoText);
+		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
+		assertTrue("unexpected click info-0: " + clickInfoText, clickInfoText.contains("click pos: 100,100"));
+		assertTrue("unexpected click info-1: " + clickInfoText, clickInfoText.contains("click pos: 12,13"));
+		assertTrue("unexpected click info-2: " + clickInfoText, clickInfoText.contains("click pos: 82,23"));
+	}
+
+	@Test
+	public void testClickToScreenElementUsingActions() throws Exception {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+
+		// when
+//		WebElement screen = remoteRobo.findElementByXPath("//screen");
+		WebElement screen = remoteRobo.findElement(By.xpath("//screen"));
+		System.out.println(screen);
+		Actions actions = new Actions(remoteRobo);
+		Actions click = actions.moveToElement(screen, casp.x + 100, casp.y + 100).click();
+		click.perform();
+
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
+		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
+	}
+
+	@Test
+	public void testScreenshot() throws IOException {
 		// when
 		File screenshotFile = remoteRobo.getScreenshotAs(OutputType.FILE);
 
@@ -164,8 +231,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testRectangle() throws IOException {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
-
 		// when: retrieve remote rectangle x,y,width,height (x,y = position of left
 		// upper corner)
 		WebElement screenRectangle = remoteRobo
@@ -180,8 +245,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testScreenshotRectangle() throws IOException {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
-
 		RoboDriverUtil roboUtil = new RoboDriverUtil();
 		WebElement testImage = browser.findElementById("testimage");
 		Rectangle rect = roboUtil.getScreenRectangleOfBrowserElement(testImage);
@@ -198,7 +261,6 @@ public class RoboDriverServerTest {
 
 	@Test
 	public void testFindImageOnScreenByDataUri() throws IOException {
-		Assume.assumeTrue(getServerNotRunningInfoText(), serverRunning);
 		RoboDriverUtil roboUtil = new RoboDriverUtil();
 		Rectangle expectedImageRect = roboUtil.getScreenRectangleOfBrowserElement(testImageInWebPage);
 
@@ -211,6 +273,30 @@ public class RoboDriverServerTest {
 		// then
 		assertEquals(util.toString(expectedImageRect), util.toString(foundImageRectangle.getRect()));
 		assertEquals("image click position (10,10)", testInputOutputField.getAttribute("value").trim());
+	}
+
+	@Test
+	public void testRoboScreenEquals() {
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
+		RemoteWebElement screen1 = (RemoteWebElement) roboDriver.findElementByXPath("//screen[0]");
+		RemoteWebElement screen2 = (RemoteWebElement) roboDriver.findElementByXPath("//screen[0]");
+
+		assertTrue(screen1.equals(screen2));
+	}
+
+	@Test
+	public void testRoboScreenRectangleTestEquals() {
+		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
+		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
+		WebElement screen = roboDriver.findElementByXPath("//screen[@default=true]");
+		WebElement rectangle1 = screen.findElement(By.xpath("//rectangle[@dim='70,80,100,200']"));
+		WebElement rectangle2 = screen.findElement(By.xpath("//rectangle[@dim='70,80,100,200']"));
+		WebElement rectangle3 = screen.findElement(By.xpath("//rectangle[@dim='90,80,100,200']"));
+
+		assertTrue(rectangle1.equals(rectangle2));
+		assertFalse(rectangle1.equals(rectangle3));
+		assertFalse(rectangle2.equals(rectangle3));
 	}
 
 	private void assertEqualsImage(String expectedImage, File imageFile) throws IOException {

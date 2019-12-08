@@ -1,14 +1,12 @@
-- implement find rectangle by image
+- add clipboard utility to set text with special characters
 
 - expose wait-for-idle delay in milliseconds as a capability
 
 - retrieve screen informations and propagate back with Capabilities
 
-- add demo: drag&drop http://the-internet.herokuapp.com/drag_and_drop
-
 - test/document usage with Selenium grid nodes
 
-- determine virtual key names for keys of remote keyboard layout and propagate back with Capabilities.
+- determine virtual key names for keys of remote server keyboard layout and propagate back with Capabilities.
 	  
 - implement recorder to generate Actions expression for key strokes
 

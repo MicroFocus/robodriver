@@ -4,6 +4,8 @@ import java.awt.AWTException;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
@@ -30,13 +32,13 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 public class RoboUtil {
-	
+
 	private static Logger LOGGER = LoggerUtil.get(RoboUtil.class);
-	
+
 	private static Map<String, Robot> robots = new HashMap<>();
 
 	private static Map<Character, Integer> webDriverKeyToVirtualKeyMap = new HashMap<>();
-	
+
 	private static Map<Integer, Character> virtualKeyToWebDriverKeyMap = new HashMap<>();
 
 	private static Map<String, Integer> virtualKeyNameToKeyCodeMap = new HashMap<>();
@@ -45,14 +47,14 @@ public class RoboUtil {
 
 	private static volatile boolean isInitializedKeyMappingsDone;
 
-	private synchronized static void initializeKeyMappings() { 
+	private synchronized static void initializeKeyMappings() {
 		if (isInitializedKeyMappingsDone) {
 			return;
 		}
 		addWebDriverKeyToMaps(Keys.NULL, KeyEvent.VK_UNDEFINED);
 		addWebDriverKeyToMaps(Keys.RETURN, KeyEvent.VK_ENTER);
 		addWebDriverKeyToMaps(Keys.ZENKAKU_HANKAKU, KeyEvent.VK_FULL_WIDTH);
-		
+
 		String osName = System.getProperty("os.name", "").toLowerCase();
 		if (osName.contains("mac")) {
 			addWebDriverKeyToMaps(Keys.META, KeyEvent.VK_META);
@@ -61,11 +63,11 @@ public class RoboUtil {
 			addWebDriverKeyToMaps(Keys.META, KeyEvent.VK_WINDOWS);
 			addWebDriverKeyToMaps(Keys.COMMAND, KeyEvent.VK_WINDOWS);
 		}
-		
-		for (Keys k: Keys.values()) {
-			if (! webDriverKeyToVirtualKeyMap.containsKey(k.charAt(0))) {
+
+		for (Keys k : Keys.values()) {
+			if (!webDriverKeyToVirtualKeyMap.containsKey(k.charAt(0))) {
 				try {
-					Integer keyEvent = (Integer) KeyEvent.class.getField("VK_" +  k.name()).get(null);
+					Integer keyEvent = (Integer) KeyEvent.class.getField("VK_" + k.name()).get(null);
 					if (keyEvent == null)
 						System.out.println(k.name());
 					addWebDriverKeyToMaps(k, keyEvent);
@@ -89,14 +91,14 @@ public class RoboUtil {
 		}
 		isInitializedKeyMappingsDone = true;
 	}
-	
+
 	public RoboUtil() {
 		if (!isInitializedKeyMappingsDone) {
 			initializeKeyMappings();
 		}
 		assert isInitializedKeyMappingsDone;
 	}
-	
+
 	private static void addWebDriverKeyToMaps(Keys webDriverKey, Integer virtualKey) {
 		webDriverKeyToVirtualKeyMap.put(webDriverKey.charAt(0), virtualKey);
 		virtualKeyToWebDriverKeyMap.put(virtualKey, webDriverKey.charAt(0));
@@ -117,15 +119,12 @@ public class RoboUtil {
 				System.out.println(transform);
 				System.out.println("scale x = " + transform.getScaleX());
 				System.out.println("scale y = " + transform.getScaleY());
-				/*JFrame f = new JFrame(gs[j].getDefaultConfiguration());
-				Canvas c = new Canvas(gconf);
-				java.awt.Rectangle gcBounds = gconf.getBounds();
-				int xoffs = gcBounds.x;
-				int yoffs = gcBounds.y;
-				f.getContentPane().add(c);
-				f.setLocation((i * 50) + xoffs, (i * 60) + yoffs);
-				f.setVisible(true);
-				*/
+				/*
+				 * JFrame f = new JFrame(gs[j].getDefaultConfiguration()); Canvas c = new
+				 * Canvas(gconf); java.awt.Rectangle gcBounds = gconf.getBounds(); int xoffs =
+				 * gcBounds.x; int yoffs = gcBounds.y; f.getContentPane().add(c);
+				 * f.setLocation((i * 50) + xoffs, (i * 60) + yoffs); f.setVisible(true);
+				 */
 				i++;
 			}
 		}
@@ -137,12 +136,12 @@ public class RoboUtil {
 		for (int j = 0; j < gdevices.length; j++) {
 			GraphicsDevice gd = gdevices[j];
 			GraphicsConfiguration[] gc = gd.getConfigurations();
-			for (int i=0; i < gc.length; i++) {
+			for (int i = 0; i < gc.length; i++) {
 				Rectangle bounds = gc[i].getBounds();
 				System.out.println("graphics device/config-index: " + j + "/" + i + ", bounds=" + bounds);
 				virtualBounds = virtualBounds.union(bounds);
 			}
-		} 
+		}
 		System.out.printf("virtualBounds of %s screens = %s%n", gdevices.length, virtualBounds);
 	}
 
@@ -151,7 +150,7 @@ public class RoboUtil {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice gs = ge.getDefaultScreenDevice();
 		GraphicsConfiguration[] gc = gs.getConfigurations();
-		for (int i=0; i < gc.length; i++) {
+		for (int i = 0; i < gc.length; i++) {
 			Rectangle bounds = gc[i].getBounds();
 			System.out.println("graphics config-" + i + ", bounds=" + bounds);
 			virtualBounds = virtualBounds.union(bounds);
@@ -164,8 +163,7 @@ public class RoboUtil {
 			Robot robot = new Robot();
 			BufferedImage screenCapture = robot.createScreenCapture(rectangle);
 			ImageIO.write(screenCapture, "png", new File("./screenshot.png"));
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -207,7 +205,7 @@ public class RoboUtil {
 
 	public void sendKeys(Robot robot, CharSequence[] keysToSend) {
 		for (CharSequence charSeq : keysToSend) {
-			CharSequence charSeqToProcess; 
+			CharSequence charSeqToProcess;
 			if ((charSeqToProcess = getVirtualKeyCharSeq(charSeq.toString())) == null) {
 				charSeqToProcess = charSeq;
 			}
@@ -224,22 +222,24 @@ public class RoboUtil {
 					robot.keyPress(keyCode);
 					robot.keyRelease(keyCode);
 				} else {
-					LOGGER.log(Level.INFO, ()->String.format("sendKeys: no key code found for character, numeric/type = %d/%d", 
-							Character.getNumericValue(c), Character.getType(c)));
+					LOGGER.log(Level.INFO,
+							() -> String.format("sendKeys: no key code found for character, numeric/type = %d/%d",
+									Character.getNumericValue(c), Character.getType(c)));
 				}
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, ()->String.format("send key '%c' (%h) failed: " + e.getMessage(), c, (int)c));
+				LOGGER.log(Level.SEVERE,
+						() -> String.format("send key '%c' (%h) failed: " + e.getMessage(), c, (int) c));
 				throw new RuntimeException(e);
 			}
 		}
 	}
 
 	public void sendKeys(Robot robot, String string) {
-		sendKeys(robot, new CharSequence[] { string } );
+		sendKeys(robot, new CharSequence[] { string });
 	}
 
 	public void sendKeys(Robot robot, CharSequence charSeq) {
-		sendKeys(robot, new CharSequence[] { charSeq } );
+		sendKeys(robot, new CharSequence[] { charSeq });
 	}
 
 	public Robot getRobot(GraphicsDevice device) {
@@ -257,13 +257,13 @@ public class RoboUtil {
 			}
 		}
 	}
-	
+
 	public Robot getDefaultRobot() {
 		return getRobot(getDefaultDevice());
 	}
 
 	public void mouseDown(GraphicsDevice device, Integer button) {
-		LOGGER.log(Level.FINEST, ()->String.format("mouse down, device=%s", device)); 
+		LOGGER.log(Level.FINEST, () -> String.format("mouse down, device=%s", device));
 		int buttonMask = getInputEventMouseButtonMask(button);
 		getRobot(device).mousePress(buttonMask);
 	}
@@ -277,41 +277,49 @@ public class RoboUtil {
 	}
 
 	public void mouseUp(GraphicsDevice device, Integer button) {
-		LOGGER.log(Level.FINEST, ()->String.format("mouse up, device=%s", device)); 
+		LOGGER.log(Level.FINEST, () -> String.format("mouse up, device=%s", device));
 		int buttonMask = getInputEventMouseButtonMask(button);
 		getRobot(device).mouseRelease(buttonMask);
 	}
 
 	// TODO throw exception if position is out of screen
 	public void mouseMove(GraphicsDevice device, int moveDurationInMs, int movePosX, int movePosY) {
-		LOGGER.log(Level.FINEST, ()->String.format("move mouse to (%s,%s), tick duration=%s, device=%s", 
-				movePosX, movePosY, moveDurationInMs, device));
+		LOGGER.log(Level.FINEST, () -> String.format("move mouse to (%s,%s), tick duration=%s, device=%s", movePosX,
+				movePosY, moveDurationInMs, device));
 		getRobot(device).mouseMove(movePosX, movePosY);
 		sleep(moveDurationInMs);
 	}
 
+	public void mouseMoveOffset(GraphicsDevice device, int moveDurationInMs, int offsetX, int offsetY) {
+		LOGGER.log(Level.FINEST, () -> String.format("move mouse delta (%s,%s), tick duration=%s, device=%s", offsetX,
+				offsetY, moveDurationInMs, device));
+		Point location = MouseInfo.getPointerInfo().getLocation();
+		mouseMove(device, moveDurationInMs, location.x + offsetX, location.y + offsetY);
+	}
+
 	public void keyDown(GraphicsDevice device, char c) {
-		LOGGER.log(Level.FINEST, ()->String.format("key down, c=%c, device=%s", c, device)); 
+		LOGGER.log(Level.FINEST, () -> String.format("key down, c=%c, device=%s", c, device));
 		Integer osKey = getVirtualKeyCode(c);
 		if (osKey != null) {
 			getRobot(device).keyPress(osKey);
 		} else {
-			LOGGER.log(Level.INFO, ()-> String.format("key down: no key code found for character, numeric/type = %d/%d", 
-					Character.getNumericValue(c), Character.getType(c)));
+			LOGGER.log(Level.INFO,
+					() -> String.format("key down: no key code found for character, numeric/type = %d/%d",
+							Character.getNumericValue(c), Character.getType(c)));
 		}
 	}
 
 	public void keyUp(GraphicsDevice device, char c) {
-		LOGGER.log(Level.FINEST, ()->String.format("key up, c=%c, device=%s", c, device)); 
+		LOGGER.log(Level.FINEST, () -> String.format("key up, c=%c, device=%s", c, device));
 		Integer osKey = getVirtualKeyCode(c);
 		if (osKey != null) {
 			getRobot(device).keyRelease(osKey);
 		} else {
-			LOGGER.log(Level.INFO, ()->String.format("key up: no key code found for character, numeric/type = %d/%d", 
+			LOGGER.log(Level.INFO, () -> String.format("key up: no key code found for character, numeric/type = %d/%d",
 					Character.getNumericValue(c), Character.getType(c)));
 		}
 	}
-	
+
 	Integer getVirtualKeyCode(Character c) {
 		Integer keyCode = webDriverKeyToVirtualKeyMap.get(c);
 		if (keyCode != null) {
@@ -321,19 +329,19 @@ public class RoboUtil {
 		if (keyCode != KeyEvent.VK_UNDEFINED) {
 			return keyCode;
 		} else {
-			return (int)c.charValue();
+			return (int) c.charValue();
 		}
 	}
 
 	public String getWebDriverKeyName(int virtualKeyCode) {
 		Character webDriverKeyUnicode = virtualKeyToWebDriverKeyMap.get(virtualKeyCode);
 		if (webDriverKeyUnicode == null) {
-			return "<NO VK>"; 
+			return "<NO VK>";
 		}
 		Keys keyFromUnicode = Keys.getKeyFromUnicode(webDriverKeyUnicode);
 		return (keyFromUnicode == null ? "<NO NAME>" : keyFromUnicode.name());
 	}
-	
+
 	public List<String> getVirtualKeyNames() {
 		List<String> names = new ArrayList<>(virtualKeyNameToKeyCodeMap.keySet());
 		Collections.sort(names);
@@ -350,17 +358,19 @@ public class RoboUtil {
 
 	/**
 	 * Retrieves Java virtual key character by name.
+	 * 
 	 * @param virtualKeyName valid names are VK_XXX constants from {@link KeyEvent}.
-	 * @return virtual key character that can be used with webdriver sendKeys() methods, or null if not found VK
+	 * @return virtual key character that can be used with webdriver sendKeys()
+	 *         methods, or null if not found VK
 	 */
 	public CharSequence getVirtualKeyCharSeq(String virtualKeyName) {
 		Integer vk = virtualKeyNameToKeyCodeMap.get(virtualKeyName);
 		if (vk == null) {
 			return null;
 		}
-		return Character.valueOf((char)vk.intValue()).toString();
+		return Character.valueOf((char) vk.intValue()).toString();
 	}
-	
+
 	public String getScreenshot(GraphicsDevice device) throws IOException {
 		Rectangle screenRectangle = device.getDefaultConfiguration().getBounds();
 		return getScreenshot(device, screenRectangle);
@@ -377,8 +387,8 @@ public class RoboUtil {
 
 	public void click(GraphicsDevice device, Rectangle rectangle) {
 		Robot robot = getRobot(device);
-		int x = rectangle.x + rectangle.width/2;
-		int y = rectangle.y + rectangle.height/2;
+		int x = rectangle.x + rectangle.width / 2;
+		int y = rectangle.y + rectangle.height / 2;
 		robot.mouseMove(x, y);
 		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -406,12 +416,16 @@ public class RoboUtil {
 		// compare pixels
 		for (int x = 0; x < i1.getWidth(); x++) {
 			for (int y = 0; y < i1.getHeight(); y++) {
-				if (i1.getRGB(x,y) != i2.getRGB(x, y)) { 
+				if (i1.getRGB(x, y) != i2.getRGB(x, y)) {
 					return false;
 				}
 			}
 		}
 		return true;
+	}
+
+	public Float calcPixelCenter(int dim) {
+		return Float.valueOf((0.5f * dim) + 0.5f);
 	}
 
 	public void sleep(int millis) {
@@ -420,35 +434,33 @@ public class RoboUtil {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	}	
-	
+	}
+
 	public static void main(String[] args) {
 		RoboUtil roboUtil = new RoboUtil();
 		roboUtil.showScreenDevices();
 		roboUtil.clacVirtualBounds();
 		roboUtil.clacDefaultVirtualBounds();
-		
+
 		/*
-		 * UTF note:
-		 * The range of legal code points is now U+0000 to U+10FFFF, known as Unicode scalar value. 
-		 * (Refer to the  definition of the U+n notation in the Unicode Standard.) 
-		 * The set of characters from U+0000 to U+FFFF is sometimes referred to as the 
-		 * Basic Multilingual Plane (BMP). Characters whose code points are greater than U+FFFF 
-		 * are called supplementary characters. The Java platform uses the UTF-16 representation 
-		 * in char arrays and in the String and StringBuffer classes. 
-		 * In this representation, supplementary characters are represented as a pair of char values, 
-		 * the first from the high-surrogates range, (\uD800-\uDBFF), 
-		 * the second from the low-surrogates range (\uDC00-\uDFFF). 
-		 * A char value, therefore, represents Basic Multilingual Plane (BMP) code points, 
-		 * including the surrogate code points, or code units of the UTF-16 encoding. 
-		 * An int value represents all Unicode code points, including supplementary code points. 
-		 * The lower (least significant) 21 bits of int are used to represent Unicode code points 
-		 * and the upper (most significant) 11 bits must be zero. Unless otherwise specified, 
-		 * the behavior with respect to supplementary characters and surrogate char values is as follows:
-		 * ...
-		 * http.//www.unicode.org/glossary 
+		 * UTF note: The range of legal code points is now U+0000 to U+10FFFF, known as
+		 * Unicode scalar value. (Refer to the definition of the U+n notation in the
+		 * Unicode Standard.) The set of characters from U+0000 to U+FFFF is sometimes
+		 * referred to as the Basic Multilingual Plane (BMP). Characters whose code
+		 * points are greater than U+FFFF are called supplementary characters. The Java
+		 * platform uses the UTF-16 representation in char arrays and in the String and
+		 * StringBuffer classes. In this representation, supplementary characters are
+		 * represented as a pair of char values, the first from the high-surrogates
+		 * range, (\uD800-\uDBFF), the second from the low-surrogates range
+		 * (\uDC00-\uDFFF). A char value, therefore, represents Basic Multilingual Plane
+		 * (BMP) code points, including the surrogate code points, or code units of the
+		 * UTF-16 encoding. An int value represents all Unicode code points, including
+		 * supplementary code points. The lower (least significant) 21 bits of int are
+		 * used to represent Unicode code points and the upper (most significant) 11
+		 * bits must be zero. Unless otherwise specified, the behavior with respect to
+		 * supplementary characters and surrogate char values is as follows: ...
+		 * http.//www.unicode.org/glossary
 		 */
 	}
 
 }
-

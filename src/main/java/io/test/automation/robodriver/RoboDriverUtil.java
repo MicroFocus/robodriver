@@ -1,12 +1,16 @@
 package io.test.automation.robodriver;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.InvalidArgumentException;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebDriver.Window;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 public class RoboDriverUtil {
-	
+
 	private int leftViewportToWindowBorderInPixel = -1;
 	private int bottomViewPortBorderInPixel = -1;
 
@@ -14,11 +18,18 @@ public class RoboDriverUtil {
 	}
 
 	/**
-	 * @param leftViewportToWindowBorderInPixel distance in pixel between left edge of outer browser window and the browser rendering viewport,
-	 * <br>with -1 the default is used, it is half of the difference between the window width and the viewport width.
+	 * @param leftViewportToWindowBorderInPixel distance in pixel between left edge
+	 *                                          of outer browser window and the
+	 *                                          browser rendering viewport, <br>
+	 *                                          with -1 the default is used, it is
+	 *                                          half of the difference between the
+	 *                                          window width and the viewport width.
 	 * 
-	 * @param bottomViewportToWindowBorder distance in pixel between bottom edge of outer browser window and the browser rendering viewport,
-	 * <br>with -1 the default is used, it is leftViewportToWindowBorder.
+	 * @param bottomViewportToWindowBorder      distance in pixel between bottom
+	 *                                          edge of outer browser window and the
+	 *                                          browser rendering viewport, <br>
+	 *                                          with -1 the default is used, it is
+	 *                                          leftViewportToWindowBorder.
 	 */
 	public RoboDriverUtil(int leftViewportToWindowBorderInPixel, int bottomViewPortBorderInPixel) {
 		this.leftViewportToWindowBorderInPixel = leftViewportToWindowBorderInPixel;
@@ -26,7 +37,8 @@ public class RoboDriverUtil {
 	}
 
 	/**
-	 * Calculates the screen rectangle of a browser DOM element with x,y position in pixel of the left upper corner.
+	 * Calculates the screen rectangle of a browser DOM element with x,y position in
+	 * pixel of the left upper corner.
 	 * 
 	 * @param element browser DOM element
 	 * @return the rectangle with position and dimension.
@@ -37,7 +49,8 @@ public class RoboDriverUtil {
 		Rectangle elementViewportRectangle = new Rectangle(element.getLocation(), element.getSize());
 		int elementScreenX = viewportScreenRectangle.getX() + elementViewportRectangle.getX();
 		int elementScreenY = viewportScreenRectangle.getY() + elementViewportRectangle.getY();
-		return buildRectangle(elementScreenX, elementScreenY, elementViewportRectangle.getWidth(), elementViewportRectangle.getHeight());
+		return buildRectangle(elementScreenX, elementScreenY, elementViewportRectangle.getWidth(),
+				elementViewportRectangle.getHeight());
 	}
 
 	public Rectangle getScreenRectangleOfBrowserViewport(RemoteWebDriver driver) {
@@ -48,7 +61,8 @@ public class RoboDriverUtil {
 		int viewportBorderLeft = getLeftViewportBorder(windowScreenRect, viewportWidth);
 		int viewportBorderBottom = getBottomViewportBorder(windowScreenRect, viewportWidth);
 		int viewportScreenX = windowScreenRect.getX() + viewportBorderLeft;
-		int viewportScreenY = windowScreenRect.getY() + windowScreenRect.getHeight() - viewportBorderBottom - viewportHeight;
+		int viewportScreenY = windowScreenRect.getY() + windowScreenRect.getHeight() - viewportBorderBottom
+				- viewportHeight;
 		return buildRectangle(viewportScreenX, viewportScreenY, viewportWidth, viewportHeight);
 	}
 
@@ -61,7 +75,7 @@ public class RoboDriverUtil {
 	public Rectangle getScreenRectangleOfWindow(Window window) {
 		return new Rectangle(window.getPosition(), window.getSize());
 	}
-	
+
 	// TODO: find screen element for a window (useful in case of multiple screens)
 
 	private int getLeftViewportBorder(Rectangle windowScreenRect, int viewportWidth) {
@@ -103,5 +117,12 @@ public class RoboDriverUtil {
 
 	private Rectangle buildRectangle(int elementScreenX, int elementScreenY, int width, int height) {
 		return new Rectangle(new Point(elementScreenX, elementScreenY), new Dimension(width, height));
+	}
+
+	public WebElement findSreenRectangleFromWebElement(RemoteWebDriver roboDriver, WebElement domElement) {
+		Rectangle rect = getScreenRectangleOfBrowserElement(domElement);
+		String screenRectXpath = String.format("//rectangle[@dim='%d,%d,%d,%d']", rect.x, rect.y, rect.width,
+				rect.height);
+		return roboDriver.findElementByXPath(screenRectXpath);
 	}
 }

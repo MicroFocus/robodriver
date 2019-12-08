@@ -4,6 +4,6 @@
 <listEntry value="org.eclipse.ui.externaltools.launchGroup"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/robodriver/start_seleniumserver.cmd}"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="&quot;C:\Programme\Java\jre-10.0.1\bin\java.exe&quot; &#13;&#10;&quot;C:\Libraries\selenium-server-standalone-3.141.59.jar&quot; &#13;&#10;&quot;C:\Libraries\chromedriver.exe&quot; &#13;&#10;&quot;.\target\classes&quot;"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="&quot;C:\Program Files\AdoptOpenJDK\jdk-11.0.3.7-hotspot\bin\java.exe&quot; &#13;&#10;&quot;C:\Libraries\selenium-server-standalone-3.141.59.jar&quot; &#13;&#10;&quot;C:\Libraries\chromedriver.exe&quot; &#13;&#10;&quot;.\target\classes&quot;"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/robodriver}"/>
 </launchConfiguration>

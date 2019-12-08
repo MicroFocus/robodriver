@@ -140,6 +140,7 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		values.put("capabilities", capabs);
 		capabs.put("robo:screenCount", (new RoboUtil()).getGraphicsDevices().length);
 		response.setValue(values);
+		response.setSessionId(sessionId);
 	}
 
 	private void execElementScreenshot(Command command, Response response) throws IOException {
@@ -176,14 +177,14 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		}
 		if (xpath.isRectangleByDim()) {
 			Rectangle rectangle = xpath.getRectangle(parentRectangle);
-			response.setValue(new RoboScreenRectangle(screen, rectangle));
+			response.setValue(RoboScreenRectangle.getInstance(screen, rectangle));
 		} else if (xpath.isRectangleByImg()) {
 			RoboImage i = new RoboImage(xpath.getImgUriOrFile());
 			Rectangle rectangle = new ImageUtil().findRectangle(screen, parentRectangle, i);
 			if (rectangle == null) {
 				throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
 			}
-			response.setValue(new RoboScreenRectangle(screen, rectangle));
+			response.setValue(RoboScreenRectangle.getInstance(screen, rectangle));
 		} else {
 			throw new RuntimeException("invalid rectangle: " + parameters);
 		}
@@ -206,14 +207,14 @@ public class RoboDriverCommandExecutor implements CommandExecutor {
 		}
 		if (xpath.isRectangleByDim()) {
 			Rectangle rectangle = xpath.getRectangle();
-			response.setValue(new RoboScreenRectangle(screen, rectangle));
+			response.setValue(RoboScreenRectangle.getInstance(screen, rectangle));
 		} else if (xpath.isRectangleByImg()) {
 			RoboImage i = new RoboImage(xpath.getImgUriOrFile());
 			Rectangle rectangle = new ImageUtil().findRectangle(screen, i);
 			if (rectangle == null) {
 				throw new NoSuchElementException("cannot find image '" + xpath.getImgUriOrFile() + "' on screen.");
 			}
-			response.setValue(new RoboScreenRectangle(screen, rectangle));
+			response.setValue(RoboScreenRectangle.getInstance(screen, rectangle));
 		} else {
 			response.setValue(screen);
 		}

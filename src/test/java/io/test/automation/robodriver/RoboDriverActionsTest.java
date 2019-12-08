@@ -23,10 +23,11 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 public class RoboDriverActionsTest {
 
+	private static WebElement clickArea;
 	private static Point casp; // click area screen position of left upper corner
 	private static RemoteWebDriver browser;
 	private static TestUtil util;
-	
+
 	private RoboDriver robo;
 
 	@BeforeClass
@@ -34,13 +35,13 @@ public class RoboDriverActionsTest {
 		util = new TestUtil();
 		browser = util.startChrome();
 		util.navigateToTestPage(browser);
-		WebElement clickArea = browser.findElementById("clickarea");
+		clickArea = browser.findElementById("clickarea");
 		casp = new RoboDriverUtil().getScreenRectangleOfBrowserElement(clickArea).getPoint();
-		
+
 		WebElement clickInfo = browser.findElementById("outputs");
 		assertTrue("click info must be empty", clickInfo.getAttribute("value").isEmpty());
 	}
-	
+
 	@AfterClass
 	public static void onAfterClass() {
 		if (browser != null) {
@@ -55,67 +56,60 @@ public class RoboDriverActionsTest {
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		robo = new RoboDriver(roboCapabilities);
 	}
-	
+
 	@After
 	public void onAfterTest() {
 		if (robo != null) {
 			robo.quit();
 		}
 	}
-	
+
 	@Test
 	public void testSendKeys() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		screen.sendKeys("hEllo");
-		
+
 		// then
 		assertEquals("hello", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testSendKeysBackTick() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		
+
 		// when
-		new Actions(robo)
-			.keyDown(Keys.SHIFT)
-			.perform();
+		new Actions(robo).keyDown(Keys.SHIFT).perform();
 		screen.sendKeys("VK_DEAD_ACUTE", " ");
-		new Actions(robo)
-			.keyUp(Keys.SHIFT)
-			.perform();
+		new Actions(robo).keyUp(Keys.SHIFT).perform();
 
 		// then
 		assertEquals("`", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testSendKeysCapitalLetterWithAcute() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		
+
 		// when
-		new Actions(robo)
-			.keyDown(Keys.SHIFT)
-			.perform();
-		
-		screen.sendKeys("VK_DEAD_ACUTE", "A"); // single 'VK_xx' arguments are interpreted as virtual key code, see also Java KeyEvent.class 
-		
-		new Actions(robo)
-			.keyUp(Keys.SHIFT)
-			.perform();
-		
+		new Actions(robo).keyDown(Keys.SHIFT).perform();
+
+		screen.sendKeys("VK_DEAD_ACUTE", "A"); // single 'VK_xx' arguments are interpreted as virtual key code, see also
+												// Java KeyEvent.class
+
+		new Actions(robo).keyUp(Keys.SHIFT).perform();
+
 		// then
 		assertEquals("À", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testSendKeysWithVirtualKeyNames() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
@@ -123,211 +117,222 @@ public class RoboDriverActionsTest {
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
 		screen.sendKeys("VK_H", "VK_E", "VK_L", "VK_L", "VK_O");
-		
+
 		// then
 		assertEquals("hello", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testSendKeyActions() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
-		new Actions(robo)
-			.sendKeys("hello")
-			.perform();
-		
+		new Actions(robo).sendKeys("hello").perform();
+
 		// then
 		assertEquals("hello", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testSendShiftKeyActions() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
 		// when
-		new Actions(robo)
-			.keyDown(Keys.SHIFT)
-			.sendKeys("hello")
-			.keyUp(Keys.SHIFT)
-			.perform();
+		new Actions(robo).keyDown(Keys.SHIFT).sendKeys("hello").keyUp(Keys.SHIFT).perform();
 
 		// then
 		assertEquals("HELLO", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
-	@Ignore // FIX: Java Selenium client adds click to (0,0) ticks, that is bad! Use API without target.
+	@Ignore // FIX: Java Selenium client adds click to (0,0) ticks, that is bad! Use API
+			// without target.
 	public void testSendShiftKeyWithTargetActions() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.keyDown(screen, Keys.SHIFT)
-			.sendKeys(screen, "hello")
-			.keyUp(screen, Keys.SHIFT)
-			.perform();
-		
+		new Actions(robo).keyDown(screen, Keys.SHIFT).sendKeys(screen, "hello").keyUp(screen, Keys.SHIFT).perform();
+
 		// then
 		assertEquals("HELLO", textInputField.getAttribute("value"));
 	}
-	
+
 	@Test
 	public void testMixedKeyMouseActions() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.keyDown(Keys.SHIFT)
-			.sendKeys("hello")
-			.keyUp(Keys.SHIFT)
-			.sendKeys(Keys.RETURN)
-			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
-			.click()
-			.perform();
-		
+		new Actions(robo).keyDown(Keys.SHIFT).sendKeys("hello").keyUp(Keys.SHIFT).sendKeys(Keys.RETURN)
+				.moveToElement(screen, casp.getX() + 100, casp.getY() + 100).click().perform();
+
 		// then
-		assertEquals("HELLO\nmouse move: from (100,100) to (100,100)\nclick pos: 100,100", textInputField.getAttribute("value").trim());
+		assertEquals("HELLO\nmouse move: from (100,100) to (100,100)\nclick pos: 100,100",
+				textInputField.getAttribute("value").trim());
 	}
-	
+
 	@Test
 	public void testClick() throws Exception {
 		// given
 		WebElement clickInfo = browser.findElementById("outputs");
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
-			.click()
-			.perform();
-		
+		new Actions(robo).moveToElement(screen, casp.getX() + 100, casp.getY() + 100).click().perform();
+
 		// then
 		String clickInfoText = clickInfo.getAttribute("value");
 		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
 		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
 	}
-	
+
+	@Test
+	public void testClickToRectangleElement() throws Exception {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+
+		// when
+		WebElement rectangleClickArea = new RoboDriverUtil().findSreenRectangleFromWebElement(robo, clickArea);
+
+		Actions actions = new Actions(robo);
+		Actions click = actions.click(rectangleClickArea);
+		click.perform();
+
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
+		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
+	}
+
+	@Test
+	public void testClickToMultipleRectangleElement() throws Exception {
+		// given
+		WebElement clickInfo = browser.findElementById("outputs");
+		WebElement clickArea = browser.findElementById("clickarea");
+
+		// when
+		WebElement rect0 = new RoboDriverUtil().findSreenRectangleFromWebElement(robo, clickArea);
+		WebElement rect1 = rect0.findElement(By.xpath("//rectangle[@dim='10,10,3,5']"));
+		WebElement rect2 = rect0.findElement(By.xpath("//rectangle[@dim='80,20,3,5']"));
+
+		// click to center of click area
+		Actions actions = new Actions(robo);
+		Actions click = actions.click(rect0);
+		click.perform();
+		// click to rectangles within click area
+		actions = new Actions(robo);
+		click = actions.click(rect1);
+		click.perform();
+		actions = new Actions(robo);
+		click = actions.click(rect2);
+		click.perform();
+
+		// then
+		String clickInfoText = clickInfo.getAttribute("value");
+		System.out.println(clickInfoText);
+		assertFalse("click not executed, click info was empty", clickInfoText.isEmpty());
+		assertTrue("unexpected click info-0: " + clickInfoText, clickInfoText.contains("click pos: 100,100"));
+		assertTrue("unexpected click info-1: " + clickInfoText, clickInfoText.contains("click pos: 12,13"));
+		assertTrue("unexpected click info-2: " + clickInfoText, clickInfoText.contains("click pos: 82,23"));
+	}
+
 	@Test
 	public void testDragAndDrop() {
 		WebElement outputs = browser.findElementById("outputs");
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		
+
 		// when
 		WebElement caspCorner = screen.findElement(
 				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 1, casp.getY() + 1)));
 		WebElement caspCenter = screen.findElement(
 				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 100, casp.getY() + 100)));
-		new Actions(robo)
-			.dragAndDrop(caspCorner, caspCenter)
-			.perform();
-		
+		new Actions(robo).dragAndDrop(caspCorner, caspCenter).perform();
+
 		// then
 		assertEquals("mouse move: from (1,1) to (100,100)", outputs.getAttribute("value").trim());
 	}
-	
+
 	@Test
 	public void testDragAndDropByOffset() {
 		WebElement outputs = browser.findElementById("outputs");
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		
+
 		// when
 		WebElement caspCenter = screen.findElement(
 				By.xpath(String.format("//rectangle[@dim='%d,%d,0,0']", casp.getX() + 100, casp.getY() + 100)));
-		new Actions(robo)
-		.dragAndDropBy(caspCenter, 20, 20)
-		.perform();
-		
-		// then
+		new Actions(robo).dragAndDropBy(caspCenter, 20, 20).perform();
+
 		assertEquals("mouse move: from (100,100) to (120,120)", outputs.getAttribute("value").trim());
 	}
-	
+
 	@Test
 	public void testDoubleClick() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
-			.doubleClick()
-			.perform();
-		
+		new Actions(robo).moveToElement(screen, casp.getX() + 100, casp.getY() + 100).doubleClick().perform();
+
 		// then
-		assertEquals("mouse move: from (100,100) to (100,100)\n"
-				+ "click pos: 100,100\n"
-				+ "mouse move: from (100,100) to (100,100)\n"
-				+ "click pos: 100,100\n"
-				+ "double click", 
+		assertEquals(
+				"mouse move: from (100,100) to (100,100)\n" + "click pos: 100,100\n"
+						+ "mouse move: from (100,100) to (100,100)\n" + "click pos: 100,100\n" + "double click",
 				textInputField.getAttribute("value").trim());
-	}	
-	
+	}
+
 	@Test
 	public void testContextMenuClick() throws Exception {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
-			.contextClick()
-			.perform();
-		
+		new Actions(robo).moveToElement(screen, casp.getX() + 100, casp.getY() + 100).contextClick().perform();
+
 		// then
-		assertEquals("mouse move: from (100,100) to (100,100)\n"
-				+ "context click", 
+		assertEquals("mouse move: from (100,100) to (100,100)\n" + "context click",
 				textInputField.getAttribute("value").trim());
-	}	
-	
+	}
+
 	@Test
 	public void testClickAndHold() {
 		// given
 		WebElement clickInfo = browser.findElementById("outputs");
-		
+
 		// when
 		WebElement screen = robo.findElementByXPath("//screen[@default=true]");
-		new Actions(robo)
-			.moveToElement(screen, casp.getX() + 100, casp.getY() + 100)
-			.clickAndHold()
-			.perform();
-		
+		new Actions(robo).moveToElement(screen, casp.getX() + 100, casp.getY() + 100).clickAndHold().perform();
+
 		// then
 		String clickInfoText = clickInfo.getAttribute("value");
 		assertTrue("click and hold should not trigger any event", clickInfoText.isEmpty());
-		
-		
+
 		// when
 		util.sleep(2);
-		new Actions(robo)
-			.release()
-			.perform();
-		
+		new Actions(robo).release().perform();
+
 		// then
 		clickInfoText = clickInfo.getAttribute("value");
-		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));	
+		assertTrue("unexpected click info: " + clickInfoText, clickInfoText.contains("100,100"));
 	}
-	
+
 	@Test
-	public void testPause() {		
+	public void testPause() {
 		WebElement textInputField = browser.findElementById("outputs");
 		textInputField.click(); // set focus to input field
 
 		// when
 		long startTime = System.currentTimeMillis();
-		new Actions(robo)
-			.pause(Duration.ofSeconds(2))
-			.perform();
+		new Actions(robo).pause(Duration.ofSeconds(2)).perform();
 
 		// then
 		long startEndTimeDiff = System.currentTimeMillis() - startTime;
-		assertTrue("expected delay of about 2 seconds but was " + startEndTimeDiff/1000, startEndTimeDiff >= 1900L);	
+		assertTrue("expected delay of about 2 seconds but was " + startEndTimeDiff / 1000, startEndTimeDiff >= 1900L);
 	}
 }

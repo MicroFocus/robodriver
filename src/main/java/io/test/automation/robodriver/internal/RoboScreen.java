@@ -15,11 +15,10 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.interactions.internal.Coordinates;
+import org.openqa.selenium.interactions.Coordinates;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.RemoteWebElement;
 
-public class RoboScreen extends RemoteWebElement {
+public class RoboScreen extends RoboElement {
 
 	private static Logger LOGGER = LoggerUtil.get(RoboScreen.class);
 
@@ -33,7 +32,8 @@ public class RoboScreen extends RemoteWebElement {
 
 	private BufferedImage screenImageBuffer;
 
-	private RoboScreen(GraphicsDevice device) {
+	private RoboScreen(String id, RemoteWebDriver parent, GraphicsDevice device) {
+		super(id, parent);
 		this.device = device;
 		this.bounds = device.getDefaultConfiguration().getBounds();
 		this.rect = new Rectangle(bounds.x, bounds.y, bounds.height, bounds.width);
@@ -147,6 +147,7 @@ public class RoboScreen extends RemoteWebElement {
 		};
 	}
 
+	@Override
 	public GraphicsDevice getDevice() {
 		return device;
 	}
@@ -161,9 +162,7 @@ public class RoboScreen extends RemoteWebElement {
 		if (SCREENS.containsKey(id)) {
 			return SCREENS.get(id);
 		} else {
-			RoboScreen roboScreen = new RoboScreen(device);
-			roboScreen.setId(id);
-			roboScreen.setParent(driver);
+			RoboScreen roboScreen = new RoboScreen(id, driver, device);
 			SCREENS.put(id, roboScreen);
 			return roboScreen;
 		}

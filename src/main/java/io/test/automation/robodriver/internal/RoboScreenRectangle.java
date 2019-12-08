@@ -10,13 +10,13 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
 /**
  * Rectangle relative to its screen.
  * 
  */
-public class RoboScreenRectangle extends RemoteWebElement {
+public class RoboScreenRectangle extends RoboElement {
 
 	private static AtomicInteger ID_PROVIDER = new AtomicInteger(0);
 	private static WeakHashMap<String, RoboScreenRectangle> RECTANGLES = new WeakHashMap<>();
@@ -31,18 +31,28 @@ public class RoboScreenRectangle extends RemoteWebElement {
 	private int width;
 	private int height;
 
-	public RoboScreenRectangle(RoboScreen screen, int x, int y, int widht, int height) {
+	public static RoboScreenRectangle getInstance(RoboScreen screen, Rectangle rectangle) {
+		String id = "rectangle-" + rectangle.toString();
+		if (!RECTANGLES.containsKey(id)) {
+			RoboScreenRectangle rect = new RoboScreenRectangle(id, screen, rectangle);
+			RECTANGLES.put(id, rect);
+			return rect;
+		} else {
+			return RECTANGLES.get(id);
+		}
+	}
+
+	private RoboScreenRectangle(String id, RoboScreen screen, Rectangle rectangle) {
+		this(id, screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+	}
+
+	private RoboScreenRectangle(String id, RoboScreen screen, int x, int y, int widht, int height) {
+		super(id, (RemoteWebDriver) screen.getWrappedDriver());
 		this.screen = screen;
 		this.x = x;
 		this.y = y;
 		this.width = widht;
 		this.height = height;
-		setId("rectangle-" + Integer.toString(ID_PROVIDER.incrementAndGet()));
-		RECTANGLES.put(getId(), this);
-	}
-
-	public RoboScreenRectangle(RoboScreen screen, Rectangle rectangle) {
-		this(screen, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 	}
 
 	public RoboScreen getScreen() {
@@ -80,6 +90,7 @@ public class RoboScreenRectangle extends RemoteWebElement {
 		return new org.openqa.selenium.Rectangle(getX(), getY(), getHeight(), getWidth());
 	}
 
+	@Override
 	public Rectangle getRectAwt() {
 		return new Rectangle(getX(), getY(), getWidth(), getHeight());
 	}
@@ -106,5 +117,10 @@ public class RoboScreenRectangle extends RemoteWebElement {
 	@Override
 	public <X> X getScreenshotAs(OutputType<X> outputType) throws WebDriverException {
 		return super.getScreenshotAs(outputType);
+	}
+
+	@Override
+	public GraphicsDevice getDevice() {
+		return getScreen().getDevice();
 	}
 }
