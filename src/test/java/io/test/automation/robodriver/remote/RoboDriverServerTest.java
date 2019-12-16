@@ -203,8 +203,7 @@ public class RoboDriverServerTest {
 		WebElement clickInfo = browser.findElementById("outputs");
 
 		// when
-//		WebElement screen = remoteRobo.findElementByXPath("//screen");
-		WebElement screen = remoteRobo.findElement(By.xpath("//screen"));
+		WebElement screen = remoteRobo.findElement(By.xpath("//screen[@default=true]"));
 		System.out.println(screen);
 		Actions actions = new Actions(remoteRobo);
 		Actions click = actions.moveToElement(screen, casp.x + 100, casp.y + 100).click();

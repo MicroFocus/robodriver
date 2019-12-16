@@ -64,6 +64,10 @@ public class RoboDriverBasicsTest {
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
 		WebElement screen = roboDriver.findElementByXPath("//screen");
+		if (screen.getRect().getX() > 0) { 
+			// seems not to be the default screen, try second screen:
+			screen = roboDriver.findElementByXPath("//screen[1]");
+		}
 		assertScrenRectangle(screen);
 	}
 
@@ -72,6 +76,10 @@ public class RoboDriverBasicsTest {
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		RoboDriver roboDriver = new RoboDriver(roboCapabilities);
 		WebElement screen = roboDriver.findElementByXPath("//screen[0]");
+		if (screen.getRect().getX() > 0) { 
+			// seems not to be the default screen, try second screen:
+			screen = roboDriver.findElementByXPath("//screen[1]");
+		}
 		assertScrenRectangle(screen);
 	}
 
@@ -80,6 +88,10 @@ public class RoboDriverBasicsTest {
 		DesiredCapabilities roboCapabilities = RoboDriver.getDesiredCapabilities();
 		RemoteWebDriver roboDriver = new RemoteWebDriver(new RoboDriverCommandExecutor(), roboCapabilities);
 		WebElement screen = roboDriver.findElementByXPath("//screen[0]");
+		if (screen.getRect().getX() > 0) { 
+			// seems not to be the default screen, try second screen:
+			screen = roboDriver.findElementByXPath("//screen[1]");
+		}
 		assertScrenRectangle(screen);
 	}
 

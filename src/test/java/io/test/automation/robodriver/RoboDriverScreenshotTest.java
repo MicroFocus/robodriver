@@ -69,7 +69,7 @@ public class RoboDriverScreenshotTest {
 	
 	@Test
 	public void testScreenshotFromScreenX() throws IOException {
-		WebElement screen = robo.findElementByXPath("/screen[0]");
+		WebElement screen = robo.findElementByXPath("/screen[@default=true]");
 				
 		// when
 		File screenshotFile = screen.getScreenshotAs(OutputType.FILE);
