@@ -83,7 +83,7 @@ To capture full screen or rectanlge areas the screen and rectangle element objec
 // get screenshot from default monitor
 File screenshotFile = robo.getScreenshotAs(OutputType.FILE);
 
-// get screenshot from a spedific monitor
+// get screenshot from a specific monitor
 WebElement screen = robo.findElementByXPath("/screen[0]");
 File screenshotFile = screen.getScreenshotAs(OutputType.FILE);
 
